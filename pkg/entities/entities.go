@@ -18,14 +18,3 @@ type LoggedUser struct {
 	User  *User
 	Token *Token
 }
-
-// StoredToken stored token struct
-type StoredToken struct {
-	ID             string
-	AccessToken    string
-	AccessUUID     string
-	AccessExpires  int64
-	RefreshToken   string
-	RefreshUUID    string
-	RefreshExpires int64
-}
