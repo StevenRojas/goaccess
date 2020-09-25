@@ -1,0 +1,34 @@
+{
+  "module": "inventory",
+  "submodules": [
+    {
+      "submodule": "configuration",
+      "sections": [
+        "adjustment",
+        "reservation",
+        "transfer",
+        "inventory",
+        "reception"
+      ]
+    },
+    {
+      "submodule": "transaction",
+      "sections": [
+        "parameterization",
+        "warehouseType",
+        "warehouse",
+        "unit",
+        "groups",
+        "articleType",
+        "articles"
+      ]
+    },
+    {
+      "submodule": "reports",
+      "sections": [
+        "stock",
+        "kardex"
+      ]
+    }
+  ]
+}

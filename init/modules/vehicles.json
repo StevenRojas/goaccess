@@ -1,0 +1,42 @@
+{
+  "module": "vehicles",
+  "submodules": [
+    {
+      "submodule": "reception",
+      "sections": [
+        "finder",
+        "add"
+      ]
+    },
+    {
+      "submodule": "vehicles",
+      "sections": [
+        "list",
+        "details",
+        "reception",
+        "history",
+        "reparation"
+      ]
+    },
+    {
+      "submodule": "brand",
+      "sections": []
+    },
+    {
+      "submodule": "model",
+      "sections": []
+    },
+    {
+      "submodule": "locations",
+      "sections": []
+    },
+    {
+      "submodule": "work-category",
+      "sections": []
+    },
+    {
+      "submodule": "work-subcategory",
+      "sections": []
+    }
+  ]
+}

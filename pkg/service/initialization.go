@@ -1,0 +1,105 @@
+package service
+
+import (
+	"context"
+
+	"github.com/StevenRojas/goaccess/pkg/entities"
+	"github.com/StevenRojas/goaccess/pkg/repository"
+	"github.com/StevenRojas/goaccess/pkg/utils"
+)
+
+// InitializationService initialization service
+type InitializationService interface {
+	// Init initialize modules, sections and actions if needed
+	Init(ctx context.Context, force bool) error
+}
+
+type initialization struct {
+	repo repository.InitRepository
+	jh   utils.JSONHandler
+}
+
+// NewInitService return a new authorization service instance
+func NewInitService(initRepo repository.InitRepository, jsonHandler utils.JSONHandler) InitializationService {
+	return &initialization{
+		repo: initRepo,
+		jh:   jsonHandler,
+	}
+}
+
+// Init initialize modules, sections and actions if needed
+func (i *initialization) Init(ctx context.Context, force bool) error {
+	if !force {
+		isset, err := i.repo.IsSetConfig(ctx)
+		if err != nil {
+			return err
+		}
+		if isset {
+			return nil
+		}
+	}
+	i.repo.UnsetConfig(ctx)
+	modules, err := i.jh.Modules()
+	if err != nil {
+		return err
+	}
+	actions, err := i.jh.Actions()
+	if err != nil {
+		return err
+	}
+
+	err = i.initModules(ctx, modules)
+	if err != nil {
+		return err
+	}
+	err = i.initSubModulesAndSections(ctx, modules)
+	if err != nil {
+		return err
+	}
+	err = i.initActions(ctx, actions)
+	if err != nil {
+		return err
+	}
+	err = i.repo.SetAsConfigured(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (i *initialization) initModules(ctx context.Context, modules []entities.Module) error {
+	var names []string
+	for _, module := range modules {
+		names = append(names, module.Name)
+	}
+	return i.repo.SetModules(ctx, names)
+}
+
+func (i *initialization) initSubModulesAndSections(ctx context.Context, modules []entities.Module) error {
+	for _, module := range modules {
+		var names []string
+		for _, submodule := range module.SubModules {
+			names = append(names, submodule.Name)
+			if len(submodule.Sections) > 0 {
+				err := i.repo.SetSection(ctx, module.Name, submodule.Name, submodule.Sections)
+				if err != nil {
+					return err
+				}
+			}
+		}
+		err := i.repo.SetSubModules(ctx, module.Name, names)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (i *initialization) initActions(ctx context.Context, modules []entities.ActionModule) error {
+	for _, module := range modules {
+		for _, submodule := range module.SubModules {
+			i.repo.SetActions(ctx, module.Name, submodule.Name, submodule.Actions)
+		}
+	}
+	return nil
+}
