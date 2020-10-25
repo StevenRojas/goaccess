@@ -13,12 +13,16 @@ import (
 
 // AuthenticationService service interface
 type AuthenticationService interface {
+	// Register a user
+	Register(context.Context, *entities.User) error
+	// Unregister a user
+	Unregister(context.Context, *entities.User) error
 	// Login log in a user and return access and refresh tokens or an error
 	Login(context.Context, string) (*entities.LoggedUser, error)
 	// VerifyToken check if a token is valid and the user is logged in
-	VerifyToken(context.Context, *entities.Token) (string, error)
+	VerifyToken(context.Context, string) (string, error)
 	// Refresh refresh a token
-	RefreshToken(context.Context, *entities.Token) (*entities.Token, error)
+	RefreshToken(context.Context, string) (*entities.Token, error)
 	// Logout log out a user for a given token
 	Logout(context.Context, *entities.Token) error
 }
@@ -36,6 +40,16 @@ func NewAuthenticationService(usersRepo repository.UsersRepository, jwtHandler u
 	}
 }
 
+// Register a user
+func (ga *authentication) Register(ctx context.Context, user *entities.User) error {
+	return ga.repo.Register(ctx, user)
+}
+
+// Unregister a user
+func (ga *authentication) Unregister(ctx context.Context, user *entities.User) error {
+	return ga.repo.Unregister(ctx, user)
+}
+
 // Login log in a user by email and return access and refresh tokens or an error
 func (ga *authentication) Login(ctx context.Context, email string) (*entities.LoggedUser, error) {
 	user, err := ga.repo.GetUserByEmail(ctx, email)
@@ -49,10 +63,16 @@ func (ga *authentication) Login(ctx context.Context, email string) (*entities.Lo
 }
 
 // VerifyToken check if a token is valid and the user is logged in
-func (ga *authentication) VerifyToken(ctx context.Context, token *entities.Token) (string, error) {
-	claims, err := ga.jwtHandler.GetTokenClaims(token.Access)
+func (ga *authentication) VerifyToken(ctx context.Context, token string) (string, error) {
+	claims, err := ga.jwtHandler.GetTokenClaims(token)
 	if err != nil {
 		return "", err
+	}
+	if _, ok := claims["access_uuid"]; !ok {
+		return "", errors.New("Invalid token")
+	}
+	if _, ok := claims["user_id"]; !ok {
+		return "", errors.New("Invalid token")
 	}
 	accessKey := claims["access_uuid"].(string)
 	user, err := ga.repo.GetUserByToken(ctx, accessKey)
@@ -66,18 +86,16 @@ func (ga *authentication) VerifyToken(ctx context.Context, token *entities.Token
 }
 
 // Refresh refresh a token
-func (ga *authentication) RefreshToken(ctx context.Context, token *entities.Token) (*entities.Token, error) {
-	claims, err := ga.jwtHandler.GetTokenClaims(token.Access)
-	if err == nil {
-		accessKey := claims["access_uuid"].(string)
-		err = ga.repo.DeleteToken(ctx, accessKey)
-		if err != nil {
-			return nil, err
-		}
-	}
-	claims, err = ga.jwtHandler.GetTokenClaims(token.Refresh)
+func (ga *authentication) RefreshToken(ctx context.Context, token string) (*entities.Token, error) {
+	claims, err := ga.jwtHandler.GetTokenClaims(token)
 	if err != nil {
 		return nil, err
+	}
+	if _, ok := claims["refresh_uuid"]; !ok {
+		return nil, errors.New("Invalid token")
+	}
+	if _, ok := claims["user_id"]; !ok {
+		return nil, errors.New("Invalid token")
 	}
 	refreshKey := claims["refresh_uuid"].(string)
 	user, err := ga.repo.GetUserByToken(ctx, refreshKey)

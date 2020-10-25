@@ -13,6 +13,10 @@ import (
 
 // UsersRepository interface
 type UsersRepository interface {
+	// Register a user
+	Register(context.Context, *entities.User) error
+	// Unregister a user
+	Unregister(context.Context, *entities.User) error
 	// GetUserByID get a user by ID
 	GetUserByID(context.Context, string) (*entities.User, error)
 	// GetUserByEmail get a user by email
@@ -40,9 +44,41 @@ func NewUsersRepository(ctx context.Context, client *redis.Client) (UsersReposit
 	}, nil
 }
 
+// Register a user
+func (r *repo) Register(ctx context.Context, user *entities.User) error {
+	key := fmt.Sprintf(userKey, user.ID)
+	_, err := r.c.HMSet(ctx, key,
+		"id", user.ID,
+		"email", user.Email,
+		"name", user.Name,
+		"admin", user.IsAdmin,
+	).Result()
+	if err != nil {
+		return err
+	}
+	_, err = r.c.HSet(ctx, usersKey, user.Email, user.ID).Result()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Unregister a user
+func (r *repo) Unregister(ctx context.Context, user *entities.User) error {
+	pipe := r.c.Pipeline()
+	key := fmt.Sprintf(userKey, user.ID)
+	pipe.Del(ctx, key)
+	pipe.HDel(ctx, usersKey, user.Email)
+	_, err := pipe.Exec(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // GetUserByID get a user by ID
 func (r *repo) GetUserByID(ctx context.Context, id string) (*entities.User, error) {
-	key := fmt.Sprintf("user:%s", id)
+	key := fmt.Sprintf(userKey, id)
 	result, err := r.c.HGetAll(ctx, key).Result()
 	if err != nil {
 		return nil, err
@@ -60,7 +96,7 @@ func (r *repo) GetUserByID(ctx context.Context, id string) (*entities.User, erro
 
 // GetUserByEmail get a user by email
 func (r *repo) GetUserByEmail(ctx context.Context, email string) (*entities.User, error) {
-	id, err := r.c.HGet(ctx, "users", email).Result()
+	id, err := r.c.HGet(ctx, usersKey, email).Result()
 	if err != nil && err != redis.Nil {
 		return nil, err
 	}
@@ -72,7 +108,8 @@ func (r *repo) GetUserByEmail(ctx context.Context, email string) (*entities.User
 
 // GetUserByToken get a user by token
 func (r *repo) GetUserByToken(ctx context.Context, token string) (*entities.User, error) {
-	id, err := r.c.Get(ctx, token).Result()
+	key := "tokens:" + token
+	id, err := r.c.Get(ctx, key).Result()
 	if err != nil && err != redis.Nil {
 		return nil, err
 	}
@@ -87,11 +124,13 @@ func (r *repo) StoreTokens(ctx context.Context, token *utils.StoredToken) error 
 	at := time.Unix(token.AccessExpires, 0)
 	rt := time.Unix(token.RefreshExpires, 0)
 	now := time.Now()
-	_, err := r.c.Set(ctx, token.AccessUUID, token.ID, at.Sub(now)).Result()
+	key := "tokens:" + token.AccessUUID
+	_, err := r.c.Set(ctx, key, token.ID, at.Sub(now)).Result()
 	if err != nil {
 		return err
 	}
-	_, err = r.c.Set(ctx, token.RefreshUUID, token.ID, rt.Sub(now)).Result()
+	key = "tokens:" + token.RefreshUUID
+	_, err = r.c.Set(ctx, key, token.ID, rt.Sub(now)).Result()
 	if err != nil {
 		return err
 	}
@@ -100,6 +139,7 @@ func (r *repo) StoreTokens(ctx context.Context, token *utils.StoredToken) error 
 
 // DeleteToken delete token key
 func (r *repo) DeleteToken(ctx context.Context, key string) error {
+	key = "tokens:" + key
 	_, err := r.c.Del(ctx, key).Result()
 	if err != nil {
 		return err

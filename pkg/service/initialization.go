@@ -43,23 +43,12 @@ func (i *initialization) Init(ctx context.Context, force bool) error {
 	if err != nil {
 		return err
 	}
-	actions, err := i.jh.Actions()
-	if err != nil {
-		return err
-	}
 
 	err = i.initModules(ctx, modules)
 	if err != nil {
 		return err
 	}
-	err = i.initSubModulesAndSections(ctx, modules)
-	if err != nil {
-		return err
-	}
-	err = i.initActions(ctx, actions)
-	if err != nil {
-		return err
-	}
+
 	err = i.repo.SetAsConfigured(ctx)
 	if err != nil {
 		return err
@@ -67,39 +56,11 @@ func (i *initialization) Init(ctx context.Context, force bool) error {
 	return nil
 }
 
-func (i *initialization) initModules(ctx context.Context, modules []entities.Module) error {
+func (i *initialization) initModules(ctx context.Context, modules []entities.ModuleInit) error {
 	var names []string
 	for _, module := range modules {
 		names = append(names, module.Name)
-	}
-	return i.repo.SetModules(ctx, names)
-}
-
-func (i *initialization) initSubModulesAndSections(ctx context.Context, modules []entities.Module) error {
-	for _, module := range modules {
-		var names []string
-		for _, submodule := range module.SubModules {
-			names = append(names, submodule.Name)
-			if len(submodule.Sections) > 0 {
-				err := i.repo.SetSection(ctx, module.Name, submodule.Name, submodule.Sections)
-				if err != nil {
-					return err
-				}
-			}
-		}
-		err := i.repo.SetSubModules(ctx, module.Name, names)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (i *initialization) initActions(ctx context.Context, modules []entities.ActionModule) error {
-	for _, module := range modules {
-		for _, submodule := range module.SubModules {
-			i.repo.SetActions(ctx, module.Name, submodule.Name, submodule.Actions)
-		}
+		i.repo.AddModule(ctx, module)
 	}
 	return nil
 }

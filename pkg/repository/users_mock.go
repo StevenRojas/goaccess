@@ -12,6 +12,10 @@ import (
 
 // UsersRepositoryMock interface
 type UsersRepositoryMock interface {
+	// Register a user
+	Register(context.Context, *entities.User) error
+	// Unregister a user
+	Unregister(context.Context, *entities.User) error
 	// GetUserByID get a user by ID
 	GetUserByID(context.Context, string) (*entities.User, error)
 	// GetUserByEmail get a user by email
@@ -32,6 +36,18 @@ type UsersRepoMock struct {
 // NewUsersRepositoryMock creates a new repository instance
 func NewUsersRepositoryMock(ctx context.Context, client *redis.Client) (UsersRepository, error) {
 	return new(UsersRepoMock), nil
+}
+
+// Register a user
+func (r *UsersRepoMock) Register(ctx context.Context, user *entities.User) error {
+	args := r.M.Called(user.ID)
+	return args.Error(1)
+}
+
+// Unregister a user
+func (r *UsersRepoMock) Unregister(ctx context.Context, user *entities.User) error {
+	args := r.M.Called(user.ID)
+	return args.Error(1)
 }
 
 // GetUserByID get a user by ID

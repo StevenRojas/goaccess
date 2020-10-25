@@ -11,8 +11,7 @@ import (
 
 // JSONHandler interface
 type JSONHandler interface {
-	Modules() ([]entities.Module, error)
-	Actions() ([]entities.ActionModule, error)
+	Modules() ([]entities.ModuleInit, error)
 }
 
 type jsonHandler struct {
@@ -27,48 +26,46 @@ func NewJSONHandler(folderPath string) JSONHandler {
 }
 
 // Modules read json files from init folder and return a list of modules
-func (jh *jsonHandler) Modules() ([]entities.Module, error) {
+func (jh *jsonHandler) Modules() ([]entities.ModuleInit, error) {
 	var files []string
 	err := filepath.Walk(jh.folder+"/modules", collect(&files))
 	if err != nil {
 		return nil, err
 	}
-	modules := []entities.Module{}
+	modules := []entities.ModuleInit{}
 	for _, file := range files {
 		content, err := ioutil.ReadFile(file)
 		if err != nil {
 			return nil, err
 		}
-		module := entities.Module{}
+		module := entities.ModuleInit{}
 		err = json.Unmarshal([]byte(content), &module)
 		if err != nil {
 			return nil, err
 		}
+		for si, submodule := range module.SubModules {
+			sections := make(map[string]bool)
+			for _, section := range submodule.SectionList {
+				sections[section] = false
+			}
+			submodule.Sections = sections
+			submodule.SectionList = nil
+
+			actions := make(map[string]entities.Action)
+			for a, title := range submodule.ActionList {
+				actions[a] = entities.Action{
+					Title:   title,
+					Allowed: false,
+				}
+			}
+			submodule.Actions = actions
+			submodule.ActionList = nil
+
+			module.SubModules[si] = submodule
+		}
 		modules = append(modules, module)
 	}
 	return modules, nil
-}
-
-func (jh *jsonHandler) Actions() ([]entities.ActionModule, error) {
-	var files []string
-	err := filepath.Walk(jh.folder+"/actions", collect(&files))
-	if err != nil {
-		return nil, err
-	}
-	actions := []entities.ActionModule{}
-	for _, file := range files {
-		content, err := ioutil.ReadFile(file)
-		if err != nil {
-			return nil, err
-		}
-		action := entities.ActionModule{}
-		err = json.Unmarshal([]byte(content), &action)
-		if err != nil {
-			return nil, err
-		}
-		actions = append(actions, action)
-	}
-	return actions, nil
 }
 
 func collect(files *[]string) filepath.WalkFunc {
