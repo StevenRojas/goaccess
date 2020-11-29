@@ -3,6 +3,31 @@
 # goaccess
 
 Go package to grant and check access to users with JWT, roles, access and permissions. The principle of `goaccess` package is that a web site or app is structured based on `modules`, `submodules` and `sections`. For example the `modules` could be the options in the main menu, the `submodules` are the options for each menu and the `sections` are the rendered page sections. `goaccess` handle the structure in a JSON with this schema:
+```json
+{
+  "vehicles": {
+    "module": "vehicles",
+    "access": true,
+    "submodules": [
+      {
+        "submodule": "brand",
+        "access": false,
+        "sections": {
+          
+        }
+      },
+      {
+        "submodule": "reception",
+        "access": true,
+        "sections": {
+          "add": false,
+          "finder": true
+        }
+      }
+    ]
+  }
+}
+```
 
 On the other hand, `goaccess` package has the concept of `actions` in order to handle user permissions. `actions` are related to the `submodules` and are plain strings (whatever string that make sense for identify permissions) that could be active or not. For example, you can use strings based on the API endpoints the web app will use, here an schema example:
 ```json
@@ -11,10 +36,6 @@ On the other hand, `goaccess` package has the concept of `actions` in order to h
   "submodules": [
     {
       "submodule": "brand",
-      "sectionList": [
-        "finder",
-        "add"
-      ],
       "actionList": {
         "delete:brand:[]": "Delete brand",
         "delete:brand:[]:remove": "Delete brand remove",
@@ -25,13 +46,6 @@ On the other hand, `goaccess` package has the concept of `actions` in order to h
     },
     {
       "submodule": "vehicle",
-      "sectionList": [
-        "list",
-        "details",
-        "reception",
-        "history",
-        "reparation"
-      ],
       "actionList": {
         "delete:vehicle:[]:photo:[]": "Delete vehicle photo",
         "post:vehicle": "Create vehicle",
@@ -222,10 +236,10 @@ s := service.NewAuthorizationService(modulesRepo, rolesRepo, actionsRepo)
 err := s.AssignActions(ctx, "r1", "vehicles", "brand", []string{"delete:brand:[]:remove"})
 // Unassign actions
 err := s.UnassignActions(ctx, "r1", "vehicles", "brand", []string{"delete:brand:[]:remove"})
-// Assign roles to a user
-err := s.AssignRoles(ctx, "1", []string{"r2", "r3", "r4"})
-// Unassign roles from a user
-err := s.UnassignRoles(ctx, "1", []string{"r2"})
+// Assign role to a user
+err := s.AssignRole(ctx, "1", "r2")
+// Unassign role from a user
+err := s.UnassignRole(ctx, "1", "r2")
 // Get access JSON for a given user
 accessJSON, err := s.GetAccessList(ctx, "1")
 // Get action JSON for a given user and module

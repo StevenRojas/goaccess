@@ -1,5 +1,10 @@
 package entities
 
+const (
+	EventTypeAccess = "EventTypeAccess"
+	EventTypeAction = "EventTypeAction"
+)
+
 // User struct
 type User struct {
 	ID      string `json:"id"`
@@ -24,7 +29,7 @@ type SubModule struct {
 	Name     string            `json:"submodule"`
 	Access   bool              `json:"access"`
 	Actions  map[string]Action `json:"actions,omitempty"`
-	Sections map[string]bool   `json:"sections"`
+	Sections map[string]bool   `json:"sections,omitempty"`
 }
 
 type Module struct {
@@ -63,5 +68,7 @@ type ActionModule struct {
 }
 
 type RoleEvent struct {
-	RoleID int
+	RoleID    string
+	UserID    string
+	EventType string
 }

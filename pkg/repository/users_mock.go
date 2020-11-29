@@ -26,6 +26,8 @@ type UsersRepositoryMock interface {
 	StoreTokens(context.Context, *utils.StoredToken) error
 	// DeleteToken delete token key
 	DeleteToken(context.Context, string) error
+	// IsValidUser check if a user exist
+	IsValidUser(context.Context, string) (bool, error)
 }
 
 // UsersRepoMock users repo mock
@@ -82,4 +84,10 @@ func (r *UsersRepoMock) StoreTokens(ctx context.Context, token *utils.StoredToke
 func (r *UsersRepoMock) DeleteToken(ctx context.Context, key string) error {
 	args := r.M.Called(key)
 	return args.Error(0)
+}
+
+// IsValidUser check if a user exist
+func (r *UsersRepoMock) IsValidUser(ctx context.Context, id string) (bool, error) {
+	args := r.M.Called(id)
+	return args.Get(0).(bool), args.Error(1)
 }

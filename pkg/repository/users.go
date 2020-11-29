@@ -27,6 +27,8 @@ type UsersRepository interface {
 	StoreTokens(context.Context, *utils.StoredToken) error
 	// DeleteToken delete token key
 	DeleteToken(context.Context, string) error
+	// IsValidUser check if a user exist
+	IsValidUser(context.Context, string) (bool, error)
 }
 
 type repo struct {
@@ -145,4 +147,14 @@ func (r *repo) DeleteToken(ctx context.Context, key string) error {
 		return err
 	}
 	return nil
+}
+
+// IsValidUser check if a user exist
+func (r *repo) IsValidUser(ctx context.Context, ID string) (bool, error) {
+	key := fmt.Sprintf(userKey, ID)
+	res, err := r.c.Exists(ctx, key).Result()
+	if err != nil {
+		return false, err
+	}
+	return res == 1, nil
 }

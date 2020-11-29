@@ -2,7 +2,8 @@ package service
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
+	"errors"
 
 	"github.com/StevenRojas/goaccess/pkg/entities"
 	"github.com/StevenRojas/goaccess/pkg/events"
@@ -29,10 +30,10 @@ type AccessService interface {
 	AssignSections(ctx context.Context, roleID string, module string, submodule string, sections []string) error
 	// UnassignSections unassign sections from a role
 	UnassignSections(ctx context.Context, roleID string, module string, submodule string, sections []string) error
-	// ModulesForNewRole returns a list of available modules for create a new role
-	ModulesForNewRole(ctx context.Context) ([]entities.Module, error)
-	// ActionsForNewRole returns a list of available actions for create a new role
-	ActionsForNewRole(ctx context.Context) ([]entities.ActionModule, error)
+	// ModulesList returns a list of available modules
+	ModulesList(ctx context.Context) ([]string, error)
+	// ModuleStructure returns the module structure to create a new role
+	ModuleStructure(ctx context.Context, name string) (*entities.Module, error)
 	// GetRoleAccessList get a json of modules, submodules and sections for the given role
 	GetRoleAccessList(ctx context.Context, roleID string) (string, error)
 }
@@ -71,23 +72,32 @@ func (a *access) EditRole(ctx context.Context, ID string, name string) error {
 
 // DeleteRole removes a role and its relation with users
 func (a *access) DeleteRole(ctx context.Context, ID string) error {
-	// TODO: Update access for assigned users and role access/actions definitions
-	// roleEvent := &entities.RoleEvent{RoleID: 13}
-	// go a.subscriberFeed.Send(roleEvent)
-	return a.rolesRepo.DeleteRole(ctx, ID)
+	if ok, _ := a.rolesRepo.IsValidRole(ctx, ID); !ok {
+		return errors.New("Role not found")
+	}
+	err := a.rolesRepo.DeleteRole(ctx, ID)
+	if err != nil {
+		return err
+	}
+	roleEvent := &entities.RoleEvent{RoleID: ID}
+	go a.subscriberFeed.Send(roleEvent)
+	return nil
 }
 
 // AssignModules assign a module to a role
 func (a *access) AssignModules(ctx context.Context, roleID string, modules []string) error {
+	if ok, _ := a.rolesRepo.IsValidRole(ctx, roleID); !ok {
+		return errors.New("Role not found")
+	}
 	for _, module := range modules {
 		err := a.modulesRepo.AssignModule(ctx, roleID, module)
 		if err != nil {
 			return err
 		}
 	}
-	// TODO: Update access for assigned users and role access/actions definitions
-	// roleEvent := &entities.RoleEvent{RoleID: 13}
-	// go a.subscriberFeed.Send(roleEvent)
+	// Update access for assigned users
+	roleEvent := &entities.RoleEvent{RoleID: roleID, EventType: entities.EventTypeAccess}
+	go a.subscriberFeed.Send(roleEvent)
 	return nil
 }
 
@@ -99,6 +109,9 @@ func (a *access) UnassignModules(ctx context.Context, roleID string, modules []s
 			return err
 		}
 	}
+	// Update access for assigned users
+	roleEvent := &entities.RoleEvent{RoleID: roleID, EventType: entities.EventTypeAccess}
+	go a.subscriberFeed.Send(roleEvent)
 	return nil
 }
 
@@ -108,7 +121,8 @@ func (a *access) AssignSubModules(ctx context.Context, roleID string, module str
 	if err != nil {
 		return err
 	}
-	// Update access for assigned user
+	roleEvent := &entities.RoleEvent{RoleID: roleID, EventType: entities.EventTypeAccess}
+	go a.subscriberFeed.Send(roleEvent)
 	return nil
 }
 
@@ -118,7 +132,8 @@ func (a *access) UnassignSubModules(ctx context.Context, roleID string, module s
 	if err != nil {
 		return err
 	}
-	// Update access for assigned user
+	roleEvent := &entities.RoleEvent{RoleID: roleID, EventType: entities.EventTypeAccess}
+	go a.subscriberFeed.Send(roleEvent)
 	return nil
 }
 
@@ -128,7 +143,8 @@ func (a *access) AssignSections(ctx context.Context, roleID string, module strin
 	if err != nil {
 		return err
 	}
-	// Update access for assigned user
+	roleEvent := &entities.RoleEvent{RoleID: roleID, EventType: entities.EventTypeAccess}
+	go a.subscriberFeed.Send(roleEvent)
 	return nil
 }
 
@@ -138,18 +154,19 @@ func (a *access) UnassignSections(ctx context.Context, roleID string, module str
 	if err != nil {
 		return err
 	}
-	// Update access for assigned user
+	roleEvent := &entities.RoleEvent{RoleID: roleID, EventType: entities.EventTypeAccess}
+	go a.subscriberFeed.Send(roleEvent)
 	return nil
 }
 
-// ModulesForNewRole returns a list of available modules for create a new role
-func (a *access) ModulesForNewRole(ctx context.Context) ([]entities.Module, error) {
-	return a.modulesRepo.ModulesStructure(ctx)
+// ModulesList returns a list of available modules
+func (a *access) ModulesList(ctx context.Context) ([]string, error) {
+	return a.modulesRepo.ModulesList(ctx)
 }
 
-// ActionsForNewRole returns a list of available actions for create a new role
-func (a *access) ActionsForNewRole(ctx context.Context) ([]entities.ActionModule, error) {
-	return a.actionsRepo.ActionsStructure(ctx)
+// ModuleStructure returns the module structure to create a new role
+func (a *access) ModuleStructure(ctx context.Context, name string) (*entities.Module, error) {
+	return a.modulesRepo.ModuleStructure(ctx, name)
 }
 
 // GetRoleAccessList get a json of modules, submodules and sections for the given role
@@ -159,13 +176,6 @@ func (a *access) GetRoleAccessList(ctx context.Context, roleID string) (string, 
 	if err != nil {
 		return "", err
 	}
-	// Get the module structure
-	moduleStructure, err := a.modulesRepo.ModuleStructure(ctx, roleID)
-	if err != nil {
-		return "", err
-	}
-	// Set the corresponding access to the structure
-
-	fmt.Printf("%v\n%v\n", assignations, moduleStructure)
-	return "", nil
+	j, err := json.Marshal(assignations)
+	return string(j), err
 }

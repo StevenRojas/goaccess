@@ -4,9 +4,9 @@ import (
 	"context"
 	"log"
 	"os"
+	"time"
 
 	"github.com/StevenRojas/goaccess/pkg/events"
-
 	"github.com/StevenRojas/goaccess/pkg/utils"
 
 	"github.com/StevenRojas/goaccess/pkg/repository"
@@ -79,11 +79,11 @@ func main() {
 	// Verify access token
 	// id, err := s.VerifyToken(context.TODO(), loggedUser.Token.Access)
 
-	id, err := s.VerifyToken(
+	id, _ := s.VerifyToken(
 		context.TODO(),
 		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NfdXVpZCI6ImJ1YTdrZ2JjMW9zZ3JiYTFlMTYwIiwiZXhwIjoxNjAzNTY2MjY1LCJ1c2VyX2lkIjoiMSJ9.HvDINzWKdnqg5xBNhXh8e8jlVZfG-KTuL_cqN_5mCQ0",
 	)
-	log.Printf("%v -- %v\n", id, err)
+	log.Printf("%v\n", id)
 
 	// Refresh access token
 	// token, err := s.RefreshToken(
@@ -106,14 +106,13 @@ func main() {
 
 	// Role events listener
 	subscriberFeed := events.NewSubscriber()
-	// accessListener := events.NewAccessListener(subscriberFeed)
-	// go accessListener.RegisterAccessListener()
-	// actionListener := events.NewActionListener(subscriberFeed)
-	// go actionListener.RegisterActionListener()
-	// time.Sleep(1 * time.Second)
+	accessListener := events.NewAccessListener(modulesRepo, rolesRepo, subscriberFeed)
+	go accessListener.RegisterAccessListener()
+	actionListener := events.NewActionListener(actionsRepo, rolesRepo, subscriberFeed)
+	go actionListener.RegisterActionListener()
 
 	// Handle access
-	accessService := service.NewAccessService(modulesRepo, rolesRepo, actionsRepo, subscriberFeed)
+	//accessService := service.NewAccessService(modulesRepo, rolesRepo, actionsRepo, subscriberFeed)
 
 	// Add role
 	// roleID, err := accessService.AddRole(ctx, "accounting manager")
@@ -128,59 +127,65 @@ func main() {
 	// log.Printf("%v\n", err)
 
 	// Assign modules
-	// err = accessService.AssignModules(ctx, "r2", []string{"vehicles", "sales"})
+	// err = accessService.AssignModules(ctx, "r1", []string{"bank"})
 	// log.Printf("%v\n", err)
-
 	// Unassign modules
-	err = accessService.UnassignModules(ctx, "r4", []string{"sales", "bank"})
-	log.Printf("%v\n", err)
+	//err = accessService.UnassignModules(ctx, "r1", []string{"bank"})
+	//log.Printf("%v\n", err)
 
 	// Assign submodules
-	// err = accessService.AssignSubModules(ctx, "r4", "vehicles", []string{"reception", "responsible", "work-category"})
-	// log.Printf("%v\n", err)
+	// err = accessService.AssignSubModules(ctx, "r1", "bank", []string{"accounts"})
+	//log.Printf("%v\n", err)
 
 	// Unassign submodules
-	// err = accessService.UnassignSubModules(ctx, "r4", "vehicles", []string{"work-category"})
+	// err = accessService.UnassignSubModules(ctx, "r1", "vehicles", []string{"work-subcategory"})
 	// log.Printf("%v\n", err)
 
 	// Assign sections
-	// err = accessService.AssignSections(ctx, "r4", "vehicles", "reception", []string{"finder", "add", "test"})
+	// err = accessService.AssignSections(ctx, "r1", "vehicles", "reception", []string{"finder", "add", "test"})
 	// log.Printf("%v\n", err)
 
 	// Unassign sections
-	// err = accessService.UnassignSections(ctx, "r4", "vehicles", "reception", []string{"test"})
+	// err = accessService.UnassignSections(ctx, "r1", "vehicles", "reception", []string{"test"})
 	// log.Printf("%v\n", err)
 
-	// Get modules and actions for new role
-	// modules, err := accessService.ModulesForNewRole(ctx)
-	// log.Printf("%v %v\n", err, modules)
-	// actions, err := accessService.ActionsForNewRole(ctx)
-	// log.Printf("%v %v\n", err, actions)
+	//moduleList, err := accessService.ModulesList(ctx)
+	//log.Printf("%v\n", moduleList)
 
-	accessService.GetRoleAccessList(ctx, "r1")
+	// Get module structure for a new role
+	// module, err := accessService.ModuleStructure(ctx, "vehicles")
+	// j, _ := json.Marshal(module)
+	// fmt.Printf("%v\n", string(j))
+
+	// assignations, err := accessService.GetRoleAccessList(ctx, "r1")
+	// log.Printf("error %v\n", err)
+	// fmt.Printf("%v\n", assignations)
 
 	// AuthorizationService
-	//authorizationService := service.NewAuthorizationService(modulesRepo, rolesRepo, actionsRepo)
-	// err = authorizationService.AssignActions(ctx, "r4", "vehicles", "brand", []string{"delete:brand:[]:remove", "patch:reparation:maintenance:[]", "delete:brand:[]:test"})
+	authorizationService := service.NewAuthorizationService(modulesRepo, rolesRepo, actionsRepo, usersRepo, subscriberFeed)
+
+	// Actions
+	// err = authorizationService.AssignActions(ctx, "r1", "bank", "accounts", []string{"delete:account:[]"})
 	// log.Printf("%v\n", err)
-	// err = authorizationService.UnassignActions(ctx, "r4", "vehicles", "brand", []string{"delete:brand:[]:test"})
+	// err = authorizationService.UnassignActions(ctx, "r1", "vehicles", "reception", []string{"delete:brand:[]:test"})
 	// log.Printf("%v\n", err)
-	// authorizationService.AssignRoles(ctx, "1", []string{"r1"})
-	// err = authorizationService.AssignRoles(ctx, "2", []string{"r2", "r3", "r5"})
+
+	// Assign roles to users
+	//err = authorizationService.AssignRole(ctx, "1", "r1")
 	// log.Printf("%v\n", err)
-	// err = authorizationService.UnassignRoles(ctx, "1", []string{"r2"})
-	// log.Printf("%v\n", err)
+	//err = authorizationService.UnassignRole(ctx, "1", "r1")
+	//log.Printf("%v\n", err)
 
 	// accessJSON, err := authorizationService.GetAccessList(ctx, "1")
 	// log.Printf("%v\n", err)
 	// log.Printf("%v\n", accessJSON)
 
-	// actionsJSON, err := authorizationService.GetActionListByModule(ctx, "vehicle", "1")
+	//actionsJSON, err := authorizationService.GetActionListByModule(ctx, "bank", "1")
 	// log.Printf("%v\n", err)
-	// log.Printf("%v\n", actionsJSON)
-	// hasPermission, err := authorizationService.CheckPermission(ctx, "delete|vehicle|brand|[]", "1")
-	// log.Printf("%v\n", err)
-	// log.Printf("%v\n", hasPermission)
+	//log.Printf("%v\n", actionsJSON)
+	hasPermission, err := authorizationService.CheckPermission(ctx, "delete:account:[]", "1")
+	log.Printf("%v\n", err)
+	log.Printf("%v\n", hasPermission)
 
 	// fmt.Println("*************************\n\n\n")
 	// //path = path + "/postman"
@@ -189,4 +194,6 @@ func main() {
 	// j, err := postman.Parse("revicart_collection.json", "vehicles")
 	// log.Printf("%v\n", err)
 	// log.Printf("%v\n", j)
+
+	time.Sleep(3 * time.Second)
 }

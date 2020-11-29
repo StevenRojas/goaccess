@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/StevenRojas/goaccess/pkg/entities"
+	"github.com/StevenRojas/goaccess/pkg/events"
 	"github.com/StevenRojas/goaccess/pkg/repository"
 )
 
@@ -13,13 +15,10 @@ type AuthorizationService interface {
 	AssignActions(ctx context.Context, roleID string, module string, submodule string, actions []string) error
 	// UnassignActions unassign actions from a role
 	UnassignActions(ctx context.Context, roleID string, module string, submodule string, actions []string) error
-	// AssingRoles assign roles to a user
-	AssignRoles(ctx context.Context, userID string, roleIDs []string) error
-	// UnassignRoles unassign roles from a user
-	UnassignRoles(ctx context.Context, userID string, roleIDs []string) error
-
-	// GetRoleActionList get a json list with the actions for the given role
-	GetRoleActionList(ctx context.Context, module string, roleID string) (string, error)
+	// AssingRole assign role to a user
+	AssignRole(ctx context.Context, userID string, roleID string) error
+	// UnassignRole unassign role from a user
+	UnassignRole(ctx context.Context, userID string, roleID string) error
 	// GetAccessList get a json of modules, submodules and sections where the user has access
 	GetAccessList(ctx context.Context, userID string) (string, error)
 	// GetActionListByModule get a json list with the actions can be performed by a user in a module
@@ -29,66 +28,101 @@ type AuthorizationService interface {
 }
 
 type authorization struct {
-	modulesRepo repository.ModulesRepository
-	rolesRepo   repository.RolesRepository
-	actionsRepo repository.ActionsRepository
+	modulesRepo    repository.ModulesRepository
+	rolesRepo      repository.RolesRepository
+	actionsRepo    repository.ActionsRepository
+	usersRepo      repository.UsersRepository
+	subscriberFeed events.SubscriberFeed
 }
 
 // NewAuthorizationService return a new authorization service instance
 func NewAuthorizationService(
 	modulesRepo repository.ModulesRepository,
 	rolesRepo repository.RolesRepository,
-	actionsRepo repository.ActionsRepository) AuthorizationService {
+	actionsRepo repository.ActionsRepository,
+	usersRepo repository.UsersRepository,
+	subscriberFeed events.SubscriberFeed,
+) AuthorizationService {
 	return &authorization{
-		modulesRepo: modulesRepo,
-		rolesRepo:   rolesRepo,
-		actionsRepo: actionsRepo,
+		modulesRepo:    modulesRepo,
+		rolesRepo:      rolesRepo,
+		actionsRepo:    actionsRepo,
+		usersRepo:      usersRepo,
+		subscriberFeed: subscriberFeed,
 	}
 }
 
 // AssignActions assign actions to a role
 func (a *authorization) AssignActions(ctx context.Context, roleID string, module string, submodule string, actions []string) error {
+	if ok, _ := a.rolesRepo.IsValidRole(ctx, roleID); !ok {
+		return errors.New("Role not found")
+	}
 	err := a.actionsRepo.AssignActions(ctx, roleID, module, submodule, actions)
 	if err != nil {
 		return err
 	}
-	// Update acctions for assigned user
+	roleEvent := &entities.RoleEvent{RoleID: roleID, EventType: entities.EventTypeAction}
+	go a.subscriberFeed.Send(roleEvent)
 	return nil
 }
 
 // UnassignActions unassign actions from a role
 func (a *authorization) UnassignActions(ctx context.Context, roleID string, module string, submodule string, actions []string) error {
+	if ok, _ := a.rolesRepo.IsValidRole(ctx, roleID); !ok {
+		return errors.New("Role not found")
+	}
 	err := a.actionsRepo.UnassignActions(ctx, roleID, module, submodule, actions)
 	if err != nil {
 		return err
 	}
-	// Update acctions for assigned user
+	roleEvent := &entities.RoleEvent{RoleID: roleID, EventType: entities.EventTypeAction}
+	go a.subscriberFeed.Send(roleEvent)
 	return nil
 }
 
-// AssingRoles assign roles to a user
-func (a *authorization) AssignRoles(ctx context.Context, userID string, roleIDs []string) error {
-	err := a.rolesRepo.AssignRoles(ctx, userID, roleIDs)
+// AssingRole assign role to a user
+func (a *authorization) AssignRole(ctx context.Context, userID string, roleID string) error {
+	if ok, _ := a.usersRepo.IsValidUser(ctx, userID); !ok {
+		return errors.New("User not found")
+	}
+	if ok, _ := a.rolesRepo.IsValidRole(ctx, roleID); !ok {
+		return errors.New("Role not found")
+	}
+	err := a.rolesRepo.AssignRole(ctx, userID, roleID)
 	if err != nil {
 		return err
 	}
-	// Call to roles updater
+	roleEvent := &entities.RoleEvent{RoleID: roleID, EventType: entities.EventTypeAccess}
+	go a.subscriberFeed.Send(roleEvent)
+	roleEvent = &entities.RoleEvent{RoleID: roleID, EventType: entities.EventTypeAction}
+	go a.subscriberFeed.Send(roleEvent)
 	return nil
 }
 
-// UnassignRoles unassign roles from a user
-func (a *authorization) UnassignRoles(ctx context.Context, userID string, roleIDs []string) error {
-	err := a.rolesRepo.UnassignRoles(ctx, userID, roleIDs)
+// UnassignRole unassign role from a user
+func (a *authorization) UnassignRole(ctx context.Context, userID string, roleID string) error {
+	if ok, _ := a.usersRepo.IsValidUser(ctx, userID); !ok {
+		return errors.New("User not found")
+	}
+	if ok, _ := a.rolesRepo.IsValidRole(ctx, roleID); !ok {
+		return errors.New("Role not found")
+	}
+	err := a.rolesRepo.UnassignRole(ctx, userID, roleID)
 	if err != nil {
 		return err
 	}
-	// Call to roles updater
-	return nil
-}
+	go a.subscriberFeed.Send(&entities.RoleEvent{
+		RoleID:    roleID,
+		UserID:    userID,
+		EventType: entities.EventTypeAccess,
+	})
 
-// GetRoleActionList get a json list with the actions for the given role
-func (a *authorization) GetRoleActionList(ctx context.Context, module string, roleID string) (string, error) {
-	return "", nil
+	go a.subscriberFeed.Send(&entities.RoleEvent{
+		RoleID:    roleID,
+		UserID:    userID,
+		EventType: entities.EventTypeAction,
+	})
+	return nil
 }
 
 // GetAccessList get a json of modules, submodules and sections where the user has access

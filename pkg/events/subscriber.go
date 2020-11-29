@@ -1,7 +1,6 @@
 package events
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/StevenRojas/goaccess/pkg/entities"
@@ -9,19 +8,18 @@ import (
 
 // SubscriberFeed interface to handle subscribers and messages
 type SubscriberFeed interface {
-	Subscribe(l chan *entities.RoleEvent) Subscription
+	Subscribe(eventType string, l chan *entities.RoleEvent) Subscription
 	Send(message *entities.RoleEvent)
 }
 
 // Feed struct
 type Feed struct {
 	lock      sync.Mutex
-	listeners []chan *entities.RoleEvent
+	listeners map[string]chan *entities.RoleEvent
 }
 
 type sub struct {
 	feed    *Feed
-	index   int
 	channel chan *entities.RoleEvent
 	once    sync.Once
 	err     chan error
@@ -29,24 +27,24 @@ type sub struct {
 
 // Subscription interface to allows unsubscribe from the events and get errors
 type Subscription interface {
-	Unsubscribe()
+	Unsubscribe(eventType string)
 	Err() <-chan error
 }
 
 func NewSubscriber() SubscriberFeed {
-	fmt.Println("NewSubscriber....")
 	return &Feed{}
 }
 
 // Subscribe method to subscribe listeners
-func (f *Feed) Subscribe(l chan *entities.RoleEvent) Subscription {
-	fmt.Println("Subscribe....")
+func (f *Feed) Subscribe(eventType string, l chan *entities.RoleEvent) Subscription {
 	f.lock.Lock()
 	defer f.lock.Unlock()
-	f.listeners = append(f.listeners, l)
+	if f.listeners == nil {
+		f.listeners = make(map[string]chan *entities.RoleEvent)
+	}
+	f.listeners[eventType] = l
 	return &sub{
 		feed:    f,
-		index:   len(f.listeners) - 1,
 		channel: l,
 		err:     make(chan error, 1),
 	}
@@ -54,26 +52,23 @@ func (f *Feed) Subscribe(l chan *entities.RoleEvent) Subscription {
 
 // Send method to send a message to the listeners
 func (f *Feed) Send(message *entities.RoleEvent) {
-	fmt.Printf("Sending....%v\n", message.RoleID)
 	f.lock.Lock()
 	defer f.lock.Unlock()
-	for _, l := range f.listeners {
+	if l, ok := f.listeners[message.EventType]; ok {
 		l <- message
 	}
 }
 
-func (f *Feed) remove(i int) {
+func (f *Feed) remove(eventType string) {
 	f.lock.Lock()
-	defer f.lock.Unlock()
-	last := len(f.listeners) - 1
-	f.listeners[i] = f.listeners[last]
-	f.listeners = f.listeners[:last]
+	f.listeners[eventType] = nil
+	f.lock.Unlock()
 }
 
 // Unsubscribe method to unsubscribe from the event
-func (s *sub) Unsubscribe() {
+func (s *sub) Unsubscribe(eventType string) {
 	s.once.Do(func() {
-		s.feed.remove(s.index)
+		s.feed.remove(eventType)
 		close(s.err)
 	})
 }
