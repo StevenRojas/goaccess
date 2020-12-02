@@ -1,0 +1,106 @@
+{
+  "module": "vehicles",
+  "submodules": [
+    {
+      "submodule": "brand",
+      "sectionList": [
+        
+      ],
+      "actionList": {
+        "delete:brand:[]": "Delete brand",
+        "delete:brand:[]:remove": "Delete brand remove",
+        "patch:brand:[]:restore": "Modify brand restore",
+        "post:brand": "Create brand",
+        "put:brand:[]": "Update brand"
+      }
+    },
+    {
+      "submodule": "vehicle",
+      "sectionList": [
+        "list",
+        "details",
+        "reception",
+        "history",
+        "reparation"
+      ],
+      "actionList": {
+        "delete:vehicle:[]": "Delete vehicle",
+        "delete:vehicle:[]:photo:[]": "Delete vehicle photo",
+        "post:vehicle": "Create vehicle",
+        "post:vehicle:[]:photo": "Create vehicle photo",
+        "post:vehicle:[]:reception": "Create vehicle reception",
+        "put:vehicle:[]": "Update vehicle"
+      }
+    },
+    {
+      "submodule": "reception",
+      "sectionList": [
+        "finder",
+        "add"
+      ],
+      "actionList": {
+        "delete:reception:[]:accessory:[]": "Delete reception accessory",
+        "delete:reception:[]:photo:[]": "Delete reception photo",
+        "delete:reception:[]:worktodo:[]": "Delete reception worktodo",
+        "patch:reception:[]:cancel": "Modify reception cancel",
+        "patch:reception:[]:photo:[]": "Modify reception photo",
+        "patch:reception:[]:start": "Modify reception start",
+        "post:reception:[]:accessory": "Create reception accessory",
+        "post:reception:[]:photo": "Create reception photo",
+        "post:reception:[]:worktodo": "Create reception worktodo",
+        "put:reception:[]:worktodo:[]": "Update reception worktodo"
+      }
+    },
+    {
+      "submodule": "responsible",
+      "sectionList": [
+        
+      ],
+      "actionList": {
+        "delete:responsible:[]": "Delete responsible",
+        "post:responsible": "Create responsible",
+        "put:responsible:[]": "Update responsible"
+      }
+    },
+    {
+      "submodule": "work-subcategory",
+      "sectionList": [
+        
+      ],
+      "actionList": {
+        "delete:work-category:[]": "Delete work category",
+        "delete:work-subcategory:[]": "Delete work subcategory",
+        "post:work-category": "Create work category",
+        "post:work-subcategory": "Create work subcategory",
+        "put:work-category:[]": "Update work category",
+        "put:work-subcategory:[]": "Update work subcategory"
+      }
+    },
+    {
+      "submodule": "",
+      "sectionList": [
+        
+      ]
+    },
+    {
+      "submodule": "reparation",
+      "sectionList": [
+        "worktodo",
+        "maintenance",
+        "operator",
+        "qa"
+      ],
+      "actionList": {
+        "delete:reparation:[]:worktodo:[]": "Delete reparation worktodo",
+        "patch:reparation:maintenance:[]": "Modify reparation maintenance",
+        "patch:reparation:operator:[]": "Modify reparation operator",
+        "patch:reparation:qa:[]": "Modify reparation qa",
+        "patch:reparation:status-notes:[]:status:[]": "Modify reparation status notes status",
+        "patch:reparation:status:[]": "Modify reparation status",
+        "patch:reparation:workstation:[]": "Modify reparation workstation",
+        "post:reparation:[]:worktodo": "Create reparation worktodo",
+        "put:reparation:[]:worktodo:[]": "Update reparation worktodo"
+      }
+    }
+  ]
+}
