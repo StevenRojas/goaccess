@@ -9,8 +9,15 @@
       "type": "go",
       "request": "launch",
       "mode": "auto",
-      "program": "${fileDirname}",
-      "env": {},
+      "program": "/Users/steven.rojas/code/go/goaccess/cmd/goaccess/goaccess.go",
+      "env": {
+        "JWT_SECRET_KEY": "secret!",
+        "JWT_EXPIRE_HOURS": 2,
+        "JWT_REFRESH_HOURS": 7,
+        "REDIS_ADDR": "localhost:6379",
+        "REDIS_DB": 10,
+        "REDIS_PASS": ""
+      },
       "args": []
     }
   ]
