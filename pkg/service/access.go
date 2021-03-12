@@ -14,10 +14,16 @@ import (
 type AccessService interface {
 	// AddRole add a role and return its ID
 	AddRole(ctx context.Context, name string) (string, error)
+	// IsRoleExist check if the role exists
+	IsRoleExist(ctx context.Context, ID string) (bool, error)
 	//EditRole edit the role name
 	EditRole(ctx context.Context, ID string, name string) error
 	// DeleteRole removes a role and its relation with users
 	DeleteRole(ctx context.Context, ID string) error
+	// // GetAllModules get a list of available modules
+	// GetAllModules(ctx context.Context) error
+	// // GetAssignedModules get assign modules to a role
+	// GetAssignedModules(ctx context.Context, roleID string) error
 	// AssignModules assign modules to a role
 	AssignModules(ctx context.Context, roleID string, modules []string) error
 	// UnassignModules unassign modules from a role
@@ -32,6 +38,12 @@ type AccessService interface {
 	UnassignSections(ctx context.Context, roleID string, module string, submodule string, sections []string) error
 	// ModulesList returns a list of available modules
 	ModulesList(ctx context.Context) ([]string, error)
+	// ModulesListByRole returns a list of available modules for a given role
+	ModulesListByRole(ctx context.Context, roleID string) ([]string, error)
+	// SubModulesListByRole returns a list of available submodules for a given role
+	SubModulesListByRole(ctx context.Context, roleID string) (map[string][]string, error)
+	// SectionsListByRole returns a list of available sections for a given role
+	SectionsListByRole(ctx context.Context, roleID string) (map[string]map[string][]string, error)
 	// ModuleStructure returns the module structure to create a new role
 	ModuleStructure(ctx context.Context, name string) (*entities.Module, error)
 	// GetRoleAccessList get a json of modules, submodules and sections for the given role
@@ -70,11 +82,13 @@ func (a *access) EditRole(ctx context.Context, ID string, name string) error {
 	return a.rolesRepo.EditRole(ctx, ID, name)
 }
 
+// IsRoleExist check if the role exists
+func (a *access) IsRoleExist(ctx context.Context, ID string) (bool, error) {
+	return a.rolesRepo.IsValidRole(ctx, ID)
+}
+
 // DeleteRole removes a role and its relation with users
 func (a *access) DeleteRole(ctx context.Context, ID string) error {
-	if ok, _ := a.rolesRepo.IsValidRole(ctx, ID); !ok {
-		return errors.New("Role not found")
-	}
 	err := a.rolesRepo.DeleteRole(ctx, ID)
 	if err != nil {
 		return err
@@ -162,6 +176,21 @@ func (a *access) UnassignSections(ctx context.Context, roleID string, module str
 // ModulesList returns a list of available modules
 func (a *access) ModulesList(ctx context.Context) ([]string, error) {
 	return a.modulesRepo.ModulesList(ctx)
+}
+
+// ModulesListByRole returns a list of available modules for a given role
+func (a *access) ModulesListByRole(ctx context.Context, roleID string) ([]string, error) {
+	return a.modulesRepo.ModulesListByRole(ctx, roleID)
+}
+
+// SubModulesListByRole returns a list of available submodules for a given role
+func (a *access) SubModulesListByRole(ctx context.Context, roleID string) (map[string][]string, error) {
+	return a.modulesRepo.SubModulesListByRole(ctx, roleID)
+}
+
+// SectionsListByRole returns a list of available sections for a given role
+func (a *access) SectionsListByRole(ctx context.Context, roleID string) (map[string]map[string][]string, error) {
+	return a.modulesRepo.SectionsListByRole(ctx, roleID)
 }
 
 // ModuleStructure returns the module structure to create a new role

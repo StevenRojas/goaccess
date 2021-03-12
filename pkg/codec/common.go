@@ -15,6 +15,28 @@ type EmptyResponse struct {
 	Err error `json:"error,omitempty"`
 }
 
+// NoContentResponse 204 response
+type NoContentResponse struct{}
+
+// IDResponse ID response
+type IDResponse struct {
+	ID string `json:"id,omitempty"`
+}
+
+// StringList list of string
+type StringList struct {
+	List []string `json:"list"`
+}
+
+// MapStringList list of string
+type MapStringList struct {
+	List map[string][]string `json:"list"`
+}
+
+type MapOfMapStringList struct {
+	List map[string]map[string][]string `json:"list"`
+}
+
 type errorWrapper struct {
 	Error interface{} `json:"error"`
 }
@@ -29,7 +51,7 @@ func EncodeResponse(w http.ResponseWriter, response interface{}) error {
 }
 
 // DecodeEmptyRequest generic decoder for request with no parameteres, like GET /users
-func DecodeEmptyRequest(r *http.Request) (interface{}, error) {
+func DecodeEmptyRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	return nil, nil
 }
 
@@ -58,6 +80,10 @@ func JSONEncoder(logger conf.LoggerWrapper) gokitHTTP.EncodeResponseFunc {
 			code, message := e.ToHTTP(err.error(), logger)
 			w.WriteHeader(code)
 			EncodeResponse(w, errorWrapper{Error: message})
+			return nil
+		}
+		if _, ok := response.(*NoContentResponse); ok {
+			w.WriteHeader(http.StatusNoContent)
 			return nil
 		}
 		return EncodeResponse(w, response)

@@ -20,14 +20,8 @@ var userRuleMessages = govalidator.MapData{
 	},
 }
 
-func InitUserValidator(r *http.Request, userRequest User) *govalidator.Validator {
-	opts := govalidator.Options{
-		Request:  r,
-		Data:     &userRequest,
-		Rules:    userRules,
-		Messages: userRuleMessages,
-	}
-	return govalidator.New(opts)
+var roleRules = govalidator.MapData{
+	"name": []string{"required"},
 }
 
 func InitValidator() {
@@ -41,4 +35,23 @@ func InitValidator() {
 		}
 		return nil
 	})
+}
+
+func InitUserValidator(r *http.Request, userRequest User) *govalidator.Validator {
+	opts := govalidator.Options{
+		Request:  r,
+		Data:     &userRequest,
+		Rules:    userRules,
+		Messages: userRuleMessages,
+	}
+	return govalidator.New(opts)
+}
+
+func InitRoleValidator(r *http.Request, roleRequest *Role) *govalidator.Validator {
+	opts := govalidator.Options{
+		Request: r,
+		Data:    roleRequest,
+		Rules:   roleRules,
+	}
+	return govalidator.New(opts)
 }

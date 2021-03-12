@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 	"os"
 
 	"github.com/StevenRojas/goaccess/pkg/configuration"
@@ -50,7 +49,6 @@ func NewServiceFactory(ctx context.Context, serviceConfig *configuration.Service
 
 // Setup repositories and event listeners
 func (sb *serviceFactory) Setup() {
-	fmt.Println(sb.serviceConfig.Redis.DB)
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     sb.serviceConfig.Redis.Addr,
 		Password: sb.serviceConfig.Redis.Pass,

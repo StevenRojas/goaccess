@@ -9,7 +9,7 @@ import (
 // ToHTTP parse an error and return a HTTP code and message
 func ToHTTP(err error, logger configuration.LoggerWrapper) (int, interface{}) {
 	switch e := err.(type) {
-	case *HTTPError:
+	case HTTPError:
 		logger.Info(fmt.Sprintf("HTTP Error handled: %d %s", e.Code, e.Message), e.Err)
 		return e.Code, e
 	case ValidationError:

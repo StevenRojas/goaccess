@@ -59,7 +59,91 @@ func MakeHTTPHandlerForAccess(r *mux.Router, svc service.AccessService, config c
 
 	r.Methods(http.MethodPost).Path(getAccessPath("addRole")).Handler(gokitHTTP.NewServer(
 		e.AddRole,
-		codec.DecodeRegisterUserRequest,
+		codec.DecodeAddRoleRequest,
+		codec.JSONEncoder(logger),
+		options...,
+	))
+
+	r.Methods(http.MethodPut).Path(getAccessPath("editRole")).Handler(gokitHTTP.NewServer(
+		e.EditRole,
+		codec.DecodeEditRoleRequest,
+		codec.JSONEncoder(logger),
+		options...,
+	))
+
+	r.Methods(http.MethodDelete).Path(getAccessPath("deleteRole")).Handler(gokitHTTP.NewServer(
+		e.DeleteRole,
+		codec.DecodeDeleteRoleRequest,
+		codec.JSONEncoder(logger),
+		options...,
+	))
+
+	r.Methods(http.MethodGet).Path(getAccessPath("getAllModules")).Handler(gokitHTTP.NewServer(
+		e.GetAllModules,
+		codec.DecodeEmptyRequest,
+		codec.JSONEncoder(logger),
+		options...,
+	))
+
+	r.Methods(http.MethodGet).Path(getAccessPath("getAssignedModules")).Handler(gokitHTTP.NewServer(
+		e.GetAssignedModules,
+		codec.DecodeGetRoleRequest,
+		codec.JSONEncoder(logger),
+		options...,
+	))
+
+	r.Methods(http.MethodPost).Path(getAccessPath("assignModules")).Handler(gokitHTTP.NewServer(
+		e.AssignModules,
+		codec.DecodeAssignModulesRequest,
+		codec.JSONEncoder(logger),
+		options...,
+	))
+
+	r.Methods(http.MethodDelete).Path(getAccessPath("unassignModules")).Handler(gokitHTTP.NewServer(
+		e.UnassignModules,
+		codec.DecodeUnassignModulesRequest,
+		codec.JSONEncoder(logger),
+		options...,
+	))
+
+	r.Methods(http.MethodGet).Path(getAccessPath("getAssignedSubModules")).Handler(gokitHTTP.NewServer(
+		e.GetAssignedSubModules,
+		codec.DecodeGetRoleRequest,
+		codec.JSONEncoder(logger),
+		options...,
+	))
+
+	r.Methods(http.MethodPost).Path(getAccessPath("assignSubModules")).Handler(gokitHTTP.NewServer(
+		e.AssignSubModules,
+		codec.DecodeAssignSubModulesRequest,
+		codec.JSONEncoder(logger),
+		options...,
+	))
+
+	r.Methods(http.MethodDelete).Path(getAccessPath("unassignSubModules")).Handler(gokitHTTP.NewServer(
+		e.UnassignSubModules,
+		codec.DecodeUnassignSubModulesRequest,
+		codec.JSONEncoder(logger),
+		options...,
+	))
+
+	r.Methods(http.MethodGet).Path(getAccessPath("getAssignedSections")).Handler(gokitHTTP.NewServer(
+		e.GetAssignedSections,
+		codec.DecodeGetRoleRequest,
+		codec.JSONEncoder(logger),
+		options...,
+	))
+
+	r.Methods(http.MethodPost).Path(getAccessPath("assignSections")).Handler(gokitHTTP.NewServer(
+		e.AssignSections,
+		codec.DecodeAssignSectionsRequest,
+		codec.JSONEncoder(logger),
+		options...,
+	))
+
+	r.Methods(http.MethodDelete).Path(getAccessPath("unassignSections")).Handler(gokitHTTP.NewServer(
+		e.UnassignSections,
+		codec.DecodeUnassignSectionsRequest,
 		codec.JSONEncoder(logger),
 		options...,
 	))

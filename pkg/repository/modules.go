@@ -29,6 +29,12 @@ type ModulesRepository interface {
 	UnassignSections(ctx context.Context, roleID string, module string, submodule string, sections []string) error
 	// ModulesList returns a list of available modules
 	ModulesList(ctx context.Context) ([]string, error)
+	// ModulesListByRole returns a list of assigned modules to a given role
+	ModulesListByRole(ctx context.Context, roleID string) ([]string, error)
+	// SubModulesListByRole returns a list of assigned submodules to a given role
+	SubModulesListByRole(ctx context.Context, roleID string) (map[string][]string, error)
+	// SectionsListByRole returns a list of assigned sections to a given role
+	SectionsListByRole(ctx context.Context, roleID string) (map[string]map[string][]string, error)
 	// ModuleStructure returns the modules, submodules and sections structure for a given module
 	ModuleStructure(ctx context.Context, name string) (*entities.Module, error)
 	// AssignationsByRole get a list of modules, submodules and sections assigned to the role
@@ -64,7 +70,7 @@ func (r *modulesRepo) AssignModule(ctx context.Context, roleID string, module st
 		return err
 	}
 	if ok == 0 {
-		return errors.New("Module not found")
+		return errors.New("Module not found: " + module)
 	}
 	key = rolesKey + ":" + roleID + ":mo"
 	_, err = r.c.SAdd(ctx, key, module).Result()
@@ -115,6 +121,73 @@ func (r *modulesRepo) ModulesList(ctx context.Context) ([]string, error) {
 	var modules []string
 	for _, k := range keys {
 		modules = append(modules, strings.Replace(k, accessTemplateKey+":", "", 1))
+	}
+	return modules, nil
+}
+
+// ModulesListByRole returns a list of assigned modules to a given role
+func (r *modulesRepo) ModulesListByRole(ctx context.Context, roleID string) ([]string, error) {
+	key := rolesKey + ":" + roleID + ":mo"
+	modules, err := r.c.SMembers(ctx, key).Result()
+	if err != nil {
+		return nil, err
+	}
+	return modules, nil
+}
+
+// SubModulesListByRole returns a list of assigned submodules to a given role
+func (r *modulesRepo) SubModulesListByRole(ctx context.Context, roleID string) (map[string][]string, error) {
+	mainKeyName := rolesKey + ":" + roleID + ":sm:"
+	keys, err := r.c.Keys(ctx, mainKeyName+"*").Result()
+	if err != nil {
+		return nil, err
+	}
+
+	m := map[string]*redis.StringSliceCmd{}
+	pipe := r.c.Pipeline()
+	for _, k := range keys {
+		m[k] = pipe.SMembers(ctx, k)
+	}
+	_, err = pipe.Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+	modules := map[string][]string{}
+	for k, v := range m {
+		res, _ := v.Result()
+		module := strings.Replace(k, mainKeyName, "", 1)
+		modules[module] = res
+	}
+	return modules, nil
+}
+
+// SectionsListByRole returns a list of assigned sections to a given role
+func (r *modulesRepo) SectionsListByRole(ctx context.Context, roleID string) (map[string]map[string][]string, error) {
+	mainKeyName := rolesKey + ":" + roleID + ":se:"
+	keys, err := r.c.Keys(ctx, mainKeyName+"*").Result()
+	if err != nil {
+		return nil, err
+	}
+	m := map[string]*redis.StringSliceCmd{}
+	pipe := r.c.Pipeline()
+	for _, k := range keys {
+		m[k] = pipe.SMembers(ctx, k)
+	}
+	_, err = pipe.Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
+	modules := map[string]map[string][]string{}
+	for k, v := range m {
+		res, _ := v.Result()
+		modsub := strings.Replace(k, mainKeyName, "", 1)
+		parts := strings.Split(modsub, ":")
+		moduleName := parts[0]
+		submoduleName := parts[1]
+		if len(modules[moduleName]) == 0 {
+			modules[moduleName] = make(map[string][]string)
+		}
+		modules[moduleName][submoduleName] = res
 	}
 	return modules, nil
 }

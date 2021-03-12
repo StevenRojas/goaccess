@@ -25,6 +25,11 @@ type LoggedUser struct {
 	Token *Token
 }
 
+type Role struct {
+	ID   string `json:"id,omitempty"`
+	Name string `json:"name"`
+}
+
 type SubModule struct {
 	Name     string            `json:"submodule"`
 	Access   bool              `json:"access"`
@@ -71,4 +76,21 @@ type RoleEvent struct {
 	RoleID    string
 	UserID    string
 	EventType string
+}
+type ModuleList struct {
+	RoleID  string
+	Modules []string `json:"modules"`
+}
+
+type SubModuleList struct {
+	RoleID     string
+	Module     string
+	SubModules []string `json:"submodules"`
+}
+
+type SectionList struct {
+	RoleID    string
+	Module    string
+	SubModule string
+	Sections  []string `json:"sections"`
 }

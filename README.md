@@ -208,7 +208,7 @@ err := accessService.DeleteRole(ctx, "r2")
 ```
 In order to get the JSON schema for render modules and actions while creating a new role, use these two methods:
 ```go
-modules, err := s.ModulesForNewRole(ctx)
+modules, err := s.ModulesList(ctx)
 actions, err := s.ActionsForNewRole(ctx)
 ```
 ### Handle modules

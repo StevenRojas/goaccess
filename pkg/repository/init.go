@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/StevenRojas/goaccess/pkg/entities"
 
@@ -74,6 +75,7 @@ func (r *initRepo) UnsetConfig(ctx context.Context) error {
 // AddModule add a module in the DB
 func (r *initRepo) AddModule(ctx context.Context, module entities.ModuleInit) error {
 	key := accessTemplateKey + ":" + module.Name
+	fmt.Println(key)
 	j, _ := json.Marshal(module)
 	_, err := r.c.Set(ctx, key, j, -1).Result()
 	return err
