@@ -11,6 +11,10 @@ import (
 
 // AuthorizationService authorization service to handle modules, submodules and sections
 type AuthorizationService interface {
+	// ListUsers get a list of all users
+	ListUsers(ctx context.Context) ([]entities.User, error)
+	// ListUsersByRole get a list of all users
+	ListUsersByRole(ctx context.Context, roleID string) ([]entities.User, error)
 	// AssignActions assign actions to a role
 	AssignActions(ctx context.Context, roleID string, module string, submodule string, actions []string) error
 	// UnassignActions unassign actions from a role
@@ -50,6 +54,16 @@ func NewAuthorizationService(
 		usersRepo:      usersRepo,
 		subscriberFeed: subscriberFeed,
 	}
+}
+
+// ListUsers get a list of all users
+func (a *authorization) ListUsers(ctx context.Context) ([]entities.User, error) {
+	return a.usersRepo.GetUsers(ctx)
+}
+
+// ListUsersByRole get a list of all users by role
+func (a *authorization) ListUsersByRole(ctx context.Context, roleID string) ([]entities.User, error) {
+	return a.usersRepo.GetUsersByRole(ctx, roleID)
 }
 
 // AssignActions assign actions to a role

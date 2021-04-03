@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	conf "github.com/StevenRojas/goaccess/pkg/configuration"
 	e "github.com/StevenRojas/goaccess/pkg/errors"
@@ -28,6 +29,16 @@ type StringList struct {
 	List []string `json:"list"`
 }
 
+// ListMapString map of string
+type ListMapString struct {
+	List []map[string]string `json:"list"`
+}
+
+// MapString map of string
+type MapString struct {
+	List map[string]string `json:"list"`
+}
+
 // MapStringList list of string
 type MapStringList struct {
 	List map[string][]string `json:"list"`
@@ -35,6 +46,13 @@ type MapStringList struct {
 
 type MapOfMapStringList struct {
 	List map[string]map[string][]string `json:"list"`
+}
+
+type Pagination struct {
+	Query string
+	Sort  string
+	Page  int
+	Limit int
 }
 
 type errorWrapper struct {
@@ -53,6 +71,31 @@ func EncodeResponse(w http.ResponseWriter, response interface{}) error {
 // DecodeEmptyRequest generic decoder for request with no parameteres, like GET /users
 func DecodeEmptyRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	return nil, nil
+}
+
+// DecodePaginatedListRequest decode paginated list request
+func DecodePaginatedListRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	pagination := Pagination{}
+	pagination.Query = r.URL.Query().Get("q")
+	pagination.Sort = r.URL.Query().Get("sort")
+
+	value := r.URL.Query().Get("page")
+	page, err := strconv.Atoi(value)
+	if err != nil {
+		pagination.Page = 0
+	} else {
+		pagination.Page = page
+	}
+
+	value = r.URL.Query().Get("limit")
+	limit, err := strconv.Atoi(value)
+	if err != nil {
+		pagination.Limit = 0
+	} else {
+		pagination.Limit = limit
+	}
+
+	return pagination, nil
 }
 
 // HTTPErrorEncoder generic error handler for unhandled exceptions

@@ -9,10 +9,15 @@ import (
 	"github.com/StevenRojas/goaccess/pkg/entities"
 	"github.com/StevenRojas/goaccess/pkg/utils"
 	"github.com/go-redis/redis/v8"
+	"github.com/mitchellh/mapstructure"
 )
 
 // UsersRepository interface
 type UsersRepository interface {
+	// GetUsers get a list of all users
+	GetUsers(context.Context) ([]entities.User, error)
+	// GetUsersByRole get a list of all users by role
+	GetUsersByRole(context.Context, string) ([]entities.User, error)
 	// Register a user
 	Register(context.Context, *entities.User) error
 	// Unregister a user
@@ -157,4 +162,42 @@ func (r *repo) IsValidUser(ctx context.Context, ID string) (bool, error) {
 		return false, err
 	}
 	return res == 1, nil
+}
+
+// GetUsers get a list of all users
+func (r *repo) GetUsers(ctx context.Context) ([]entities.User, error) {
+	usersKeyList, err := r.c.Keys(ctx, "user:*").Result()
+	if err != nil {
+		return nil, err
+	}
+	var userList []entities.User
+	for _, aKey := range usersKeyList {
+		hash, err := r.c.HGetAll(ctx, aKey).Result()
+		if err != nil {
+			return nil, err
+		}
+		user := entities.User{}
+		mapstructure.Decode(hash, &user)
+		userList = append(userList, user)
+	}
+	return userList, nil
+}
+
+// GetUsers get a list of all users
+func (r *repo) GetUsersByRole(ctx context.Context, roleID string) ([]entities.User, error) {
+	usersKeyList, err := r.c.Keys(ctx, "user:*").Result()
+	if err != nil {
+		return nil, err
+	}
+	var userList []entities.User
+	for _, aKey := range usersKeyList {
+		hash, err := r.c.HGetAll(ctx, aKey).Result()
+		if err != nil {
+			return nil, err
+		}
+		user := entities.User{}
+		mapstructure.Decode(hash, &user)
+		userList = append(userList, user)
+	}
+	return userList, nil
 }

@@ -34,6 +34,7 @@ func main() {
 
 	router := mux.NewRouter()
 	transport.MakeHTTPHandlerForAccess(router, accessService, serviceConfig.Security, logger)
+	transport.MakeHTTPHandlerForActions(router, authorizationService, serviceConfig.Security, logger)
 
 	var runGroup group.Group
 	{

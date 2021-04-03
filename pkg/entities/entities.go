@@ -94,3 +94,10 @@ type SectionList struct {
 	SubModule string
 	Sections  []string `json:"sections"`
 }
+
+type ActionList struct {
+	RoleID    string
+	Module    string
+	SubModule string
+	Actions   []string `json:"actions"`
+}

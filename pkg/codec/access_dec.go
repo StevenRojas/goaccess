@@ -67,6 +67,16 @@ func DecodeGetRoleRequest(_ context.Context, r *http.Request) (interface{}, erro
 	return roleID, nil
 }
 
+// DecodeGetRolesByUserRequest decode request
+func DecodeGetRolesByUserRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	vars := mux.Vars(r)
+	userID, ok := vars["user_id"]
+	if !ok {
+		return "", e.HTTPBadRequestFromString("User ID is missing")
+	}
+	return userID, nil
+}
+
 // DecodeAssignModulesRequest decode request
 func DecodeAssignModulesRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	vars := mux.Vars(r)
@@ -202,7 +212,6 @@ func DecodeUnassignSectionsRequest(_ context.Context, r *http.Request) (interfac
 	if !ok {
 		return "", e.HTTPBadRequestFromString("Sections are missing")
 	}
-	defer r.Body.Close()
 	sectionList := entities.SectionList{}
 	sectionList.RoleID = roleID
 	sectionList.Module = moduleName

@@ -24,6 +24,8 @@ type RolesRepository interface {
 	UnassignRole(ctx context.Context, userID string, roleID string) error
 	// UsersByRole get a list of users assigned to a given role
 	UsersByRole(ctx context.Context, roleID string) ([]string, error)
+	// GetRoles get a list of all roles
+	GetRoles(ctx context.Context) (map[string]string, error)
 	// RolesByUser get a list of roles assigned to a user
 	RolesByUser(ctx context.Context, userID string) ([]string, error)
 }
@@ -134,6 +136,15 @@ func (r *roleRepo) UsersByRole(ctx context.Context, roleID string) ([]string, er
 func (r *roleRepo) RolesByUser(ctx context.Context, userID string) ([]string, error) {
 	key := fmt.Sprintf(userRoleKey, userID)
 	roles, err := r.c.SMembers(ctx, key).Result()
+	if err != nil {
+		return nil, err
+	}
+	return roles, nil
+}
+
+// GetRoles get a list of all roles
+func (r *roleRepo) GetRoles(ctx context.Context) (map[string]string, error) {
+	roles, err := r.c.HGetAll(ctx, "roles").Result()
 	if err != nil {
 		return nil, err
 	}

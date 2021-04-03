@@ -12,6 +12,8 @@ import (
 )
 
 type AccessEndpoints struct {
+	ListRoles             endpoint.Endpoint
+	ListRolesByUser       endpoint.Endpoint
 	AddRole               endpoint.Endpoint
 	EditRole              endpoint.Endpoint
 	DeleteRole            endpoint.Endpoint
@@ -31,6 +33,8 @@ func MakeAccessEndpoints(
 	s service.AccessService,
 	middlewares []endpoint.Middleware) AccessEndpoints {
 	return AccessEndpoints{
+		ListRoles:             wrapMiddlewares(makeListRoles(s), middlewares),
+		ListRolesByUser:       wrapMiddlewares(makeListRolesByUser(s), middlewares),
 		AddRole:               wrapMiddlewares(makeAddRole(s), middlewares),
 		EditRole:              wrapMiddlewares(makeEditRole(s), middlewares),
 		DeleteRole:            wrapMiddlewares(makeDeleteRole(s), middlewares),
@@ -52,6 +56,30 @@ func wrapMiddlewares(ep endpoint.Endpoint, middlewares []endpoint.Middleware) en
 		ep = middlewares[i](ep)
 	}
 	return ep
+}
+
+func makeListRoles(s service.AccessService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		roles, err := s.ListRoles(ctx)
+		if err != nil {
+			return nil, e.HTTPConflict("Unable to get a list of roles", err)
+		}
+		return &codec.MapString{List: roles}, nil
+	}
+}
+
+func makeListRolesByUser(s service.AccessService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		userID, ok := request.(string)
+		if !ok {
+			return nil, e.HTTPBadRequest(errors.New("unable to cast the request to string"))
+		}
+		roles, err := s.ListRolesByUser(ctx, userID)
+		if err != nil {
+			return nil, e.HTTPConflict("Unable to get a list of roles by user", err)
+		}
+		return &codec.StringList{List: roles}, nil
+	}
 }
 
 func makeAddRole(s service.AccessService) endpoint.Endpoint {

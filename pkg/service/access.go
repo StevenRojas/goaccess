@@ -12,6 +12,10 @@ import (
 
 // AccessService access service to handle modules, submodules and sections
 type AccessService interface {
+	// ListRoles get a list of all roles
+	ListRoles(ctx context.Context) (map[string]string, error)
+	// ListRolesByUser get a list of all roles for a given user
+	ListRolesByUser(ctx context.Context, userID string) ([]string, error)
 	// AddRole add a role and return its ID
 	AddRole(ctx context.Context, name string) (string, error)
 	// IsRoleExist check if the role exists
@@ -70,6 +74,16 @@ func NewAccessService(
 		actionsRepo:    actionsRepo,
 		subscriberFeed: subscriberFeed,
 	}
+}
+
+// ListRoles get a list of all roles
+func (a *access) ListRoles(ctx context.Context) (map[string]string, error) {
+	return a.rolesRepo.GetRoles(ctx)
+}
+
+// ListRolesByUser get a list of all roles for a given user
+func (a *access) ListRolesByUser(ctx context.Context, userID string) ([]string, error) {
+	return a.rolesRepo.RolesByUser(ctx, userID)
 }
 
 // AddRole add a role and return its ID

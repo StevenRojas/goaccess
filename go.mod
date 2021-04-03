@@ -27,6 +27,7 @@ require (
 	github.com/iancoleman/strcase v0.1.2 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lyft/protoc-gen-star v0.5.2 // indirect
+	github.com/mitchellh/mapstructure v1.1.2
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/oklog/oklog v0.3.2
 	github.com/pkg/sftp v1.12.0 // indirect
