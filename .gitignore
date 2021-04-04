@@ -16,3 +16,4 @@
 cmd/goaccess/__debug_bin
 cmd/goaccess/goaccess_back.go
 .vscode/launch.json
+data/dump.rdb

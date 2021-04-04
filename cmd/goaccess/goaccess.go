@@ -32,6 +32,8 @@ func main() {
 	logger.Debug("services ready")
 	fmt.Printf("%T --- %T ---%T ---%T ---\n\n", authenticationService, accessService, authorizationService, initService)
 
+	initService.Init(ctx, false)
+
 	router := mux.NewRouter()
 	transport.MakeHTTPHandlerForAccess(router, accessService, serviceConfig.Security, logger)
 	transport.MakeHTTPHandlerForActions(router, authorizationService, serviceConfig.Security, logger)

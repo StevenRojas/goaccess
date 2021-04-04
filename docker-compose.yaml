@@ -1,0 +1,43 @@
+version: "3.7"
+
+services:
+  redisdb:
+    container_name: redisdb
+    image: redis:latest
+    hostname: redisdb
+    command: ["redis-server", "--requirepass", "${REDIS_PASS}"]
+    environment:
+         - REDIS_REPLICATION_MODE=master
+    volumes:
+      - ./data:/data
+    networks:
+      - go-network
+
+  redis-commander:
+    container_name: redis-commander
+    hostname: redis-commander
+    image: rediscommander/redis-commander:latest
+    restart: always
+    environment:
+      - REDIS_HOSTS=local:redisdb:6379
+    ports:
+      - "8081:8081"
+    networks:
+      - go-network
+
+  goaccess:
+    build: .
+    container_name: goaccess
+    restart: always
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "8077:8077"
+    networks:
+      - go-network
+    depends_on:
+      - redisdb
+
+networks:
+  go-network:
