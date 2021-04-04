@@ -78,7 +78,7 @@ func makeListRolesByUser(s service.AccessService) endpoint.Endpoint {
 		if err != nil {
 			return nil, e.HTTPConflict("Unable to get a list of roles by user", err)
 		}
-		return &codec.StringList{List: roles}, nil
+		return &codec.MapString{List: roles}, nil
 	}
 }
 

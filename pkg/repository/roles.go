@@ -27,7 +27,7 @@ type RolesRepository interface {
 	// GetRoles get a list of all roles
 	GetRoles(ctx context.Context) (map[string]string, error)
 	// RolesByUser get a list of roles assigned to a user
-	RolesByUser(ctx context.Context, userID string) ([]string, error)
+	RolesByUser(ctx context.Context, userID string) (map[string]string, error)
 }
 
 type roleRepo struct {
@@ -133,11 +133,22 @@ func (r *roleRepo) UsersByRole(ctx context.Context, roleID string) ([]string, er
 }
 
 // RolesByUser get a list of roles assigned to a user
-func (r *roleRepo) RolesByUser(ctx context.Context, userID string) ([]string, error) {
-	key := fmt.Sprintf(userRoleKey, userID)
-	roles, err := r.c.SMembers(ctx, key).Result()
+func (r *roleRepo) RolesByUser(ctx context.Context, userID string) (map[string]string, error) {
+	roleList, err := r.GetRoles(ctx)
 	if err != nil {
 		return nil, err
+	}
+	key := fmt.Sprintf(userRoleKey, userID)
+	roleKeys, err := r.c.SMembers(ctx, key).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	roles := map[string]string{}
+	for _, key := range roleKeys {
+		if role, ok := roleList[key]; ok {
+			roles[key] = role
+		}
 	}
 	return roles, nil
 }

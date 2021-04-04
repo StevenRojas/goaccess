@@ -15,7 +15,7 @@ type AccessService interface {
 	// ListRoles get a list of all roles
 	ListRoles(ctx context.Context) (map[string]string, error)
 	// ListRolesByUser get a list of all roles for a given user
-	ListRolesByUser(ctx context.Context, userID string) ([]string, error)
+	ListRolesByUser(ctx context.Context, userID string) (map[string]string, error)
 	// AddRole add a role and return its ID
 	AddRole(ctx context.Context, name string) (string, error)
 	// IsRoleExist check if the role exists
@@ -82,7 +82,7 @@ func (a *access) ListRoles(ctx context.Context) (map[string]string, error) {
 }
 
 // ListRolesByUser get a list of all roles for a given user
-func (a *access) ListRolesByUser(ctx context.Context, userID string) ([]string, error) {
+func (a *access) ListRolesByUser(ctx context.Context, userID string) (map[string]string, error) {
 	return a.rolesRepo.RolesByUser(ctx, userID)
 }
 
