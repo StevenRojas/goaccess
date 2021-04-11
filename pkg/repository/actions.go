@@ -217,6 +217,7 @@ func (r *actionsRepo) actionsForRole(ctx context.Context, roleID string) ([]stri
 	return actionList, nil
 
 }
+
 func (r *actionsRepo) contains(list []string, el string) bool {
 	for _, e := range list {
 		if e == el {

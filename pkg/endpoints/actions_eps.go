@@ -14,6 +14,8 @@ import (
 type ActionsEndpoints struct {
 	ListUsers       endpoint.Endpoint
 	ListUsersByRole endpoint.Endpoint
+	GetAccessList   endpoint.Endpoint
+	GetActionList   endpoint.Endpoint
 	AssignActions   endpoint.Endpoint
 	UnassignActions endpoint.Endpoint
 	AssignRole      endpoint.Endpoint
@@ -26,6 +28,8 @@ func MakeActionsEndpoints(
 	return ActionsEndpoints{
 		ListUsers:       wrapMiddlewares(makeListUsers(s), middlewares),
 		ListUsersByRole: wrapMiddlewares(makeListUsersByRole(s), middlewares),
+		GetAccessList:   wrapMiddlewares(makeGetAccessList(s), middlewares),
+		GetActionList:   wrapMiddlewares(makeGetActionList(s), middlewares),
 		AssignActions:   wrapMiddlewares(makeAssignActions(s), middlewares),
 		UnassignActions: wrapMiddlewares(makeUnassignActions(s), middlewares),
 		AssignRole:      wrapMiddlewares(makeAssignRole(s), middlewares),
@@ -54,6 +58,34 @@ func makeListUsersByRole(s service.AuthorizationService) endpoint.Endpoint {
 			return nil, e.HTTPConflict("Unable to get a list of users", err)
 		}
 		return users, nil
+	}
+}
+
+func makeGetAccessList(s service.AuthorizationService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		userID, ok := request.(string)
+		if !ok {
+			return nil, e.HTTPBadRequest(errors.New("unable to cast the request to string"))
+		}
+		accessList, err := s.GetAccessList(ctx, userID)
+		if err != nil {
+			return nil, e.HTTPConflict("Unable to get access list", err)
+		}
+		return accessList, nil
+	}
+}
+
+func makeGetActionList(s service.AuthorizationService) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req, ok := request.(map[string]string)
+		if !ok {
+			return nil, e.HTTPBadRequest(errors.New("unable to cast the request to map"))
+		}
+		actionList, err := s.GetActionListByModule(ctx, req["module"], req["userID"])
+		if err != nil {
+			return nil, e.HTTPConflict("Unable to get access list", err)
+		}
+		return actionList, nil
 	}
 }
 

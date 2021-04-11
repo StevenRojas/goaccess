@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 
 	"github.com/StevenRojas/goaccess/pkg/entities"
@@ -24,9 +25,9 @@ type AuthorizationService interface {
 	// UnassignRole unassign role from a user
 	UnassignRole(ctx context.Context, userID string, roleID string) error
 	// GetAccessList get a json of modules, submodules and sections where the user has access
-	GetAccessList(ctx context.Context, userID string) (string, error)
+	GetAccessList(ctx context.Context, userID string) (map[string]interface{}, error)
 	// GetActionListByModule get a json list with the actions can be performed by a user in a module
-	GetActionListByModule(ctx context.Context, module string, userID string) (string, error)
+	GetActionListByModule(ctx context.Context, module string, userID string) (map[string]interface{}, error)
 	// CheckPermission checks if a user has permission to perform an action
 	CheckPermission(ctx context.Context, action string, userID string) (bool, error)
 }
@@ -106,9 +107,9 @@ func (a *authorization) AssignRole(ctx context.Context, userID string, roleID st
 	if err != nil {
 		return err
 	}
-	roleEvent := &entities.RoleEvent{RoleID: roleID, EventType: entities.EventTypeAccess}
+	roleEvent := &entities.RoleEvent{RoleID: roleID, UserID: userID, EventType: entities.EventTypeAccess}
 	go a.subscriberFeed.Send(roleEvent)
-	roleEvent = &entities.RoleEvent{RoleID: roleID, EventType: entities.EventTypeAction}
+	roleEvent = &entities.RoleEvent{RoleID: roleID, UserID: userID, EventType: entities.EventTypeAction}
 	go a.subscriberFeed.Send(roleEvent)
 	return nil
 }
@@ -140,27 +141,37 @@ func (a *authorization) UnassignRole(ctx context.Context, userID string, roleID 
 }
 
 // GetAccessList get a json of modules, submodules and sections where the user has access
-func (a *authorization) GetAccessList(ctx context.Context, userID string) (string, error) {
+func (a *authorization) GetAccessList(ctx context.Context, userID string) (map[string]interface{}, error) {
 	access, err := a.modulesRepo.GetAccessList(ctx, userID)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if access == "" {
-		return "", errors.New("User has not access defined")
+		return nil, errors.New("User has not access defined")
 	}
-	return access, nil
+	var j map[string]interface{}
+	err = json.Unmarshal([]byte(access), &j)
+	if err != nil {
+		return nil, err
+	}
+	return j, nil
 }
 
 // GetActionListByModule get a json list with the actions can be performed by a user in a module
-func (a *authorization) GetActionListByModule(ctx context.Context, module string, userID string) (string, error) {
+func (a *authorization) GetActionListByModule(ctx context.Context, module string, userID string) (map[string]interface{}, error) {
 	actions, err := a.actionsRepo.GetActionListByModule(ctx, module, userID)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if actions == "" {
-		return "", errors.New("User has not actions defined")
+		return nil, errors.New("User has not actions defined")
 	}
-	return actions, nil
+	var j map[string]interface{}
+	err = json.Unmarshal([]byte(actions), &j)
+	if err != nil {
+		return nil, err
+	}
+	return j, nil
 }
 
 // CheckPermission checks if a user has permission to perform an action

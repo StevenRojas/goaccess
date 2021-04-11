@@ -86,3 +86,30 @@ func DecodeAssignUnassignRoleRequest(_ context.Context, r *http.Request) (interf
 		"userID": userID,
 	}, nil
 }
+
+// DecodeGetAccessRequest decode request
+func DecodeGetAccessRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	vars := mux.Vars(r)
+	userID, ok := vars["user_id"]
+	if !ok {
+		return "", e.HTTPBadRequestFromString("User ID is missing")
+	}
+	return userID, nil
+}
+
+// DecodeGetActionsRequest decode request
+func DecodeGetActionsRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	vars := mux.Vars(r)
+	userID, ok := vars["user_id"]
+	if !ok {
+		return "", e.HTTPBadRequestFromString("User ID is missing")
+	}
+	module, ok := vars["module"]
+	if !ok {
+		return "", e.HTTPBadRequestFromString("Role ID is missing")
+	}
+	return map[string]string{
+		"userID": userID,
+		"module": module,
+	}, nil
+}

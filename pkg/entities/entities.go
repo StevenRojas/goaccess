@@ -7,10 +7,11 @@ const (
 
 // User struct
 type User struct {
-	ID      string `json:"id"`
-	Email   string `json:"email"`
-	Name    string `json:"name"`
-	IsAdmin bool   `json:"is_admin"`
+	ID      string   `json:"id"`
+	Email   string   `json:"email"`
+	Name    string   `json:"name"`
+	IsAdmin bool     `json:"is_admin"`
+	Roles   []string `json:"roles"`
 }
 
 // Token struct

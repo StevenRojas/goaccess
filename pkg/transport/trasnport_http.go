@@ -231,4 +231,18 @@ func MakeHTTPHandlerForActions(r *mux.Router, svc service.AuthorizationService, 
 		options...,
 	))
 
+	r.Methods(http.MethodGet).Path(getActionsPath("getAccessList")).Handler(gokitHTTP.NewServer(
+		e.GetAccessList,
+		codec.DecodeGetAccessRequest,
+		codec.JSONEncoder(logger),
+		options...,
+	))
+
+	r.Methods(http.MethodGet).Path(getActionsPath("getActionList")).Handler(gokitHTTP.NewServer(
+		e.GetActionList,
+		codec.DecodeGetActionsRequest,
+		codec.JSONEncoder(logger),
+		options...,
+	))
+
 }

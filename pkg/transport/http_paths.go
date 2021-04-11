@@ -8,12 +8,13 @@ const accessPrefix = "/api/access"
 const authorizationPrefix = "/api/auth"
 
 var userPaths = map[string]string{
-	"registerUser":   "/users",              // gRPC
-	"unregisterUser": "/users",              // gRPC
-	"login":          "/users/login",        // gRPC
-	"logout":         "/users/logout",       // gRPC
-	"verify":         "users/token/verify",  // gRPC
-	"refresh":        "users/token/refresh", // gRPC
+	"registerUser":   "/users",                           // gRPC
+	"unregisterUser": "/users",                           // gRPC
+	"login":          "/users/login",                     // gRPC
+	"logout":         "/users/logout",                    // gRPC
+	"verify":         "users/token/verify",               // gRPC
+	"refresh":        "users/token/refresh",              // gRPC
+	"hasAccess":      "/users/{user_id}/action/{action}", // gRPC
 }
 
 var accessPaths = map[string]string{
@@ -42,14 +43,13 @@ var authorizationPaths = map[string]string{
 	"listUsers":   "/users",                //GET
 	"usersByRole": "/users/role/{role_id}", //GET
 
-	"assignRole":   "/users/{user_id}/role/{role_id}", //POST
-	"unassignRole": "/users/{user_id}/role/{role_id}", //DELETE
-
-	"getAccessList":   "/users/{user_id}/access",                                               //GET
-	"getActionList":   "/users/{user_id}/modules/{module}/actions",                             //GET
-	"hasAccess":       "/users/{user_id}/action/{action}",                                      //GET
+	"assignRole":      "/users/{user_id}/role/{role_id}",                                       //POST
+	"unassignRole":    "/users/{user_id}/role/{role_id}",                                       //DELETE
 	"assignActions":   "/actions/{role_id}/modules/{module}/submodules/{sub_module}",           //POST
 	"unassignActions": "/actions/{role_id}/modules/{module}/submodules/{sub_module}/{actions}", //DELETE
+
+	"getAccessList": "/users/{user_id}/access",                   //GET
+	"getActionList": "/users/{user_id}/modules/{module}/actions", //GET
 }
 
 func getAccessPath(path string) string {

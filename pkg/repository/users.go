@@ -170,7 +170,7 @@ func (r *repo) GetUsers(ctx context.Context) ([]entities.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	var userList []entities.User
+	userList := []entities.User{}
 	for _, aKey := range usersKeyList {
 		hash, err := r.c.HGetAll(ctx, aKey).Result()
 		if err != nil {
@@ -178,25 +178,33 @@ func (r *repo) GetUsers(ctx context.Context) ([]entities.User, error) {
 		}
 		user := entities.User{}
 		mapstructure.Decode(hash, &user)
+		user.Roles, err = r.c.SMembers(ctx, "userrole:"+user.ID).Result()
+		if err != nil {
+			return nil, err
+		}
 		userList = append(userList, user)
 	}
 	return userList, nil
 }
 
-// GetUsers get a list of all users
+// GetUsersByRole get a list of users by role
 func (r *repo) GetUsersByRole(ctx context.Context, roleID string) ([]entities.User, error) {
-	usersKeyList, err := r.c.Keys(ctx, "user:*").Result()
+	userKeyList, err := r.c.SMembers(ctx, "roleuser:"+roleID).Result()
 	if err != nil {
 		return nil, err
 	}
-	var userList []entities.User
-	for _, aKey := range usersKeyList {
-		hash, err := r.c.HGetAll(ctx, aKey).Result()
+	userList := []entities.User{}
+	for _, userID := range userKeyList {
+		hash, err := r.c.HGetAll(ctx, "user:"+userID).Result()
 		if err != nil {
 			return nil, err
 		}
 		user := entities.User{}
 		mapstructure.Decode(hash, &user)
+		user.Roles, err = r.c.SMembers(ctx, "userrole:"+user.ID).Result()
+		if err != nil {
+			return nil, err
+		}
 		userList = append(userList, user)
 	}
 	return userList, nil
