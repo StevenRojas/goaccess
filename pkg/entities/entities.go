@@ -7,10 +7,11 @@ const (
 
 // User struct
 type User struct {
-	ID      string `json:"id"`
-	Email   string `json:"email"`
-	Name    string `json:"name"`
-	IsAdmin bool   `json:"admin"`
+	ID      string   `json:"id"`
+	Email   string   `json:"email"`
+	Name    string   `json:"name"`
+	IsAdmin bool     `json:"is_admin"`
+	Roles   []string `json:"roles"`
 }
 
 // Token struct
@@ -23,6 +24,11 @@ type Token struct {
 type LoggedUser struct {
 	User  *User
 	Token *Token
+}
+
+type Role struct {
+	ID   string `json:"id,omitempty"`
+	Name string `json:"name"`
 }
 
 type SubModule struct {
@@ -71,4 +77,28 @@ type RoleEvent struct {
 	RoleID    string
 	UserID    string
 	EventType string
+}
+type ModuleList struct {
+	RoleID  string
+	Modules []string `json:"modules"`
+}
+
+type SubModuleList struct {
+	RoleID     string
+	Module     string
+	SubModules []string `json:"submodules"`
+}
+
+type SectionList struct {
+	RoleID    string
+	Module    string
+	SubModule string
+	Sections  []string `json:"sections"`
+}
+
+type ActionList struct {
+	RoleID    string
+	Module    string
+	SubModule string
+	Actions   []string `json:"actions"`
 }
