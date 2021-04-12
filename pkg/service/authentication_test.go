@@ -67,21 +67,21 @@ func (s *serviceSuite) TestLoginSuccess() {
 	assert.NotNil(t, token.Token)
 }
 
-func (s *serviceSuite) TestValidToken() {
-	t := s.T()
-	token := "a_jwt"
-	eUser := &entities.User{
-		ID:    "1",
-		Email: "srojas@gamil.com",
-		Name:  "steven rojas",
-	}
-	s.repo.M.On("GetTokenClaims", token).Return(nil, nil)
-	key := "a_uuid"
-	s.repo.M.On("GetUserByToken", key).Return(eUser, nil)
-	ID, err := s.svc.VerifyToken(context.TODO(), &entities.Token{
-		Access:  "a_jwt",
-		Refresh: "r_jwt",
-	})
-	assert.Nil(t, err)
-	assert.Equal(t, eUser.ID, ID)
-}
+// func (s *serviceSuite) TestValidToken() {
+// 	t := s.T()
+// 	token := "a_jwt"
+// 	eUser := &entities.User{
+// 		ID:    "1",
+// 		Email: "srojas@gamil.com",
+// 		Name:  "steven rojas",
+// 	}
+// 	s.repo.M.On("GetTokenClaims", token).Return(nil, nil)
+// 	key := "a_uuid"
+// 	s.repo.M.On("GetUserByToken", key).Return(eUser, nil)
+// 	ID, err := s.svc.VerifyToken(context.TODO(), &entities.Token{
+// 		Access:  "a_jwt",
+// 		Refresh: "r_jwt",
+// 	})
+// 	assert.Nil(t, err)
+// 	assert.Equal(t, eUser.ID, ID)
+// }

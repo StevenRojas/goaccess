@@ -16,6 +16,10 @@ type UsersRepositoryMock interface {
 	Register(context.Context, *entities.User) error
 	// Unregister a user
 	Unregister(context.Context, *entities.User) error
+	// GetUsers get a user by ID
+	GetUsers(context.Context) ([]entities.User, error)
+	// GetUsersByRole get a user by ID
+	GetUsersByRole(context.Context, string) ([]entities.User, error)
 	// GetUserByID get a user by ID
 	GetUserByID(context.Context, string) (*entities.User, error)
 	// GetUserByEmail get a user by email
@@ -38,6 +42,18 @@ type UsersRepoMock struct {
 // NewUsersRepositoryMock creates a new repository instance
 func NewUsersRepositoryMock(ctx context.Context, client *redis.Client) (UsersRepository, error) {
 	return new(UsersRepoMock), nil
+}
+
+// GetUsers get user list
+func (r *UsersRepoMock) GetUsers(ctx context.Context) ([]entities.User, error) {
+	args := r.M.Called()
+	return args.Get(0).([]entities.User), args.Error(1)
+}
+
+// GetUsersByRole get user list by role
+func (r *UsersRepoMock) GetUsersByRole(ctx context.Context, roleID string) ([]entities.User, error) {
+	args := r.M.Called()
+	return args.Get(0).([]entities.User), args.Error(1)
 }
 
 // Register a user
