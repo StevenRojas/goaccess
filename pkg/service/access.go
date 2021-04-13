@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 
 	"github.com/StevenRojas/goaccess/pkg/entities"
@@ -35,7 +34,7 @@ type AccessService interface {
 	// ModuleStructure returns the module structure to create a new role
 	ModuleStructure(ctx context.Context, name string) (*entities.Module, error)
 	// GetRoleAccessList get a json of modules, submodules and sections for the given role
-	GetRoleAccessList(ctx context.Context, roleID string) (string, error)
+	GetRoleAccessList(ctx context.Context, roleID map[string]interface{}) (string, error)
 }
 
 type access struct {
@@ -170,12 +169,11 @@ func (a *access) ModuleStructure(ctx context.Context, name string) (*entities.Mo
 }
 
 // GetRoleAccessList get a json of modules, submodules and sections for the given role
-func (a *access) GetRoleAccessList(ctx context.Context, roleID string) (string, error) {
+func (a *access) GetRoleAccessList(ctx context.Context, roleID string) (map[string]interface{}, error) {
 	// Get modules, submodules and sections assigned to the role
 	assignations, err := a.modulesRepo.AssignationsByRole(ctx, roleID)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	j, err := json.Marshal(assignations)
-	return string(j), err
+	return assignations, err
 }

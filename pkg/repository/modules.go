@@ -124,8 +124,11 @@ func (r *modulesRepo) ModuleStructure(ctx context.Context, name string) (*entiti
 	key := accessTemplateKey + ":" + name
 	var module entities.Module
 	j, err := r.c.Get(ctx, key).Result()
-	if err != nil {
+	if err != nil && err != redis.Nil {
 		return nil, err
+	}
+	if err == redis.Nil {
+		return nil, nil
 	}
 	err = json.Unmarshal([]byte(j), &module)
 	if err != nil {
