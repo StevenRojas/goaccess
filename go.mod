@@ -19,7 +19,6 @@ require (
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/go-redis/redis/v8 v8.0.0-beta.10
 	github.com/gofrs/uuid v3.3.0+incompatible
-	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.4.3
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/google/pprof v0.0.0-20201211104106-9bd6f8a8ed4b // indirect
@@ -28,7 +27,6 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lyft/protoc-gen-star v0.5.2 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
-	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/oklog/oklog v0.3.2
 	github.com/pkg/sftp v1.12.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
@@ -49,5 +47,4 @@ require (
 	google.golang.org/protobuf v1.25.0
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
-	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
 )
