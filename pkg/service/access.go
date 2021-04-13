@@ -50,7 +50,7 @@ type AccessService interface {
 	// ModuleStructure returns the module structure to create a new role
 	ModuleStructure(ctx context.Context, name string) (*entities.Module, error)
 	// GetRoleAccessList get a json of modules, submodules and sections for the given role
-	GetRoleAccessList(ctx context.Context, roleID map[string]interface{}) (string, error)
+	GetRoleAccessList(ctx context.Context, roleID string) (map[string]interface{}, error)
 }
 
 type access struct {
