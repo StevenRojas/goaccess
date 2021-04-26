@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/go-redis/redis/v8"
 )
@@ -12,6 +14,8 @@ import (
 type RolesRepository interface {
 	// AddRole add a role and return its ID
 	AddRole(ctx context.Context, name string) (string, error)
+	// CloneRole clone a role based on an existing one and return its ID
+	CloneRole(ctx context.Context, ID string, name string) (string, error)
 	//EditRole edit the role name
 	EditRole(ctx context.Context, ID string, name string) error
 	// DeleteRole removes a role and its relation with users
@@ -53,6 +57,31 @@ func (r *roleRepo) AddRole(ctx context.Context, name string) (string, error) {
 	}
 	rid := "r" + strconv.FormatInt(id, 10)
 	_, err = r.c.HMSet(ctx, rolesKey, rid, name).Result()
+	if err != nil {
+		return "", err
+	}
+	return rid, nil
+}
+
+// CloneRole clone a role based on an existing one and return its ID
+func (r *roleRepo) CloneRole(ctx context.Context, ID string, name string) (string, error) {
+	if ok, _ := r.IsValidRole(ctx, ID); !ok {
+		return "", errors.New("Role not found")
+	}
+
+	rid, err := r.AddRole(ctx, name)
+	if err != nil {
+		return "", err
+	}
+	branchKeys, err := r.c.Keys(ctx, rolesKey+":"+ID+":*").Result()
+	pipe := r.c.Pipeline()
+	for _, key := range branchKeys {
+		source := key
+		target := strings.Replace(key, ":"+ID+":", ":"+rid+":", 1)
+		cmd := redis.NewStringCmd(ctx, "copy", source, target)
+		pipe.Process(ctx, cmd)
+	}
+	_, err = pipe.Exec(ctx)
 	if err != nil {
 		return "", err
 	}

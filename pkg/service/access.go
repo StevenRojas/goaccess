@@ -17,16 +17,14 @@ type AccessService interface {
 	ListRolesByUser(ctx context.Context, userID string) (map[string]string, error)
 	// AddRole add a role and return its ID
 	AddRole(ctx context.Context, name string) (string, error)
+	// CloneRole clone a role based on an existing one and return its ID
+	CloneRole(ctx context.Context, ID string, name string) (string, error)
 	// IsRoleExist check if the role exists
 	IsRoleExist(ctx context.Context, ID string) (bool, error)
 	//EditRole edit the role name
 	EditRole(ctx context.Context, ID string, name string) error
 	// DeleteRole removes a role and its relation with users
 	DeleteRole(ctx context.Context, ID string) error
-	// // GetAllModules get a list of available modules
-	// GetAllModules(ctx context.Context) error
-	// // GetAssignedModules get assign modules to a role
-	// GetAssignedModules(ctx context.Context, roleID string) error
 	// AssignModules assign modules to a role
 	AssignModules(ctx context.Context, roleID string, modules []string) error
 	// UnassignModules unassign modules from a role
@@ -88,6 +86,11 @@ func (a *access) ListRolesByUser(ctx context.Context, userID string) (map[string
 // AddRole add a role and return its ID
 func (a *access) AddRole(ctx context.Context, name string) (string, error) {
 	return a.rolesRepo.AddRole(ctx, name)
+}
+
+// CloneRole clone a role based on an existing one and return its ID
+func (a *access) CloneRole(ctx context.Context, ID string, name string) (string, error) {
+	return a.rolesRepo.CloneRole(ctx, ID, name)
 }
 
 //EditRole edit the role name
