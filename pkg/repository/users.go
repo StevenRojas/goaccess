@@ -94,9 +94,10 @@ func (r *repo) GetUserByID(ctx context.Context, id string) (*entities.User, erro
 		return nil, errors.New("Not found")
 	}
 	user := &entities.User{
-		ID:    result["id"],
-		Email: result["email"],
-		Name:  result["name"],
+		ID:      result["id"],
+		Email:   result["email"],
+		Name:    result["name"],
+		IsAdmin: (result["admin"] == "1"),
 	}
 	return user, nil
 }
