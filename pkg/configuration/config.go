@@ -22,9 +22,12 @@ type ServerConfig struct {
 
 // SecurityConfig security configuration
 type SecurityConfig struct {
-	JWTSecret            string `env:"JWT_SECRET_KEY"`
-	JWTTokenExpiration   int    `env:"JWT_EXPIRE_HOURS" envDefault:"10"`
-	JWTRefreshExpiration int    `env:"JWT_REFRESH_HOURS" envDefault:"20"`
+	JWTSecret                    string `env:"JWT_SECRET_KEY"`
+	JWTTokenExpiration           int    `env:"JWT_EXPIRE_HOURS" envDefault:"10"`
+	JWTRefreshExpiration         int    `env:"JWT_REFRESH_HOURS" envDefault:"20"`
+	JWTInternalSecret            string `env:"JWT_INTERNAL_SECRET_KEY"`
+	JWTInternalTokenExpiration   int    `env:"JWT_INTERNAL_EXPIRE_HOURS" envDefault:"2"`
+	JWTInternalRefreshExpiration int    `env:"JWT_INTERNAL_REFRESH_HOURS" envDefault:"5"`
 }
 
 // RedisConfig redis configuration
