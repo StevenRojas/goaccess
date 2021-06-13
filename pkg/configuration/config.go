@@ -16,7 +16,7 @@ type ServiceConfig struct {
 // ServerConfig server configuration
 type ServerConfig struct {
 	HTTP     string          `env:"HTTP_ADDR" envDefault:":8077"`
-	GRPC     string          `env:"HTTP_ADDR" envDefault:":8088"`
+	GRPC     string          `env:"GRPC_ADDR" envDefault:":8088"`
 	LogLevel syslog.Priority `env:"LOG_LEVEL" envDefault:"7"` // LOG_DEBUG // LOG_ERR = 3
 }
 

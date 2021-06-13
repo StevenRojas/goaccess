@@ -43,7 +43,7 @@ func NewJwtHandler(config configuration.SecurityConfig) JwtHandler {
 
 func (h *jwtHandler) CreateToken(ID string) (*StoredToken, error) {
 	aUUDI := xid.New().String()
-	aExp := time.Now().Add(time.Minute * time.Duration(h.JWTTokenExpiration)).Unix()
+	aExp := time.Now().Add(time.Hour * time.Duration(h.JWTTokenExpiration)).Unix()
 	claims := jwt.MapClaims{}
 	claims["user_id"] = ID
 	claims["access_uuid"] = aUUDI
@@ -55,7 +55,7 @@ func (h *jwtHandler) CreateToken(ID string) (*StoredToken, error) {
 	}
 
 	rUUDI := xid.New().String()
-	rExp := time.Now().Add(time.Minute * time.Duration(h.JWTRefreshExpiration)).Unix()
+	rExp := time.Now().Add(time.Hour * time.Duration(h.JWTRefreshExpiration)).Unix()
 	claims = jwt.MapClaims{}
 	claims["user_id"] = ID
 	claims["refresh_uuid"] = rUUDI
